@@ -2,11 +2,11 @@
  * Web-only UI helpers: navigation chrome, toasts, modals, ride cards.
  * Nothing in here is imported by /shared, so the mobile app never sees it.
  */
-import { supabase, isConfigured, readableError } from '../../shared/client.js';
-import { getMyProfile } from '../../shared/profiles.js';
-import { signOut } from '../../shared/auth.js';
-import { unreadCount, subscribe } from '../../shared/notifications.js';
-import { seatState, initials, whenLine, money, starString } from '../../shared/format.js';
+import { supabase, isConfigured, readableError } from './client.js';
+import { getMyProfile } from './profiles.js';
+import { signOut } from './auth.js';
+import { unreadCount, subscribe } from './notifications.js';
+import { seatState, initials, whenLine, money, starString } from './format.js';
 
 export { readableError, isConfigured };
 
@@ -267,7 +267,7 @@ export async function mountChrome({ active = '' } = {}) {
 
 function showConfigWarning() {
   banner(
-    'Supabase is not configured yet. Add your project URL and publishable key to <span class="mono">shared/config.js</span> — nothing will load until then.',
+    'Supabase is not configured yet. Add your project URL and publishable key to <span class="mono">config.js</span> — nothing will load until then.',
     'warn'
   );
 }

@@ -8,78 +8,77 @@ unchanged — see [Mobile app readiness](#mobile-app-readiness).
 
 ---
 
-## 1. Files created
+## 1. Project layout
 
 ```
-index.html              Home / landing page
-dashboard.html          Dashboard — welcome, stats, driver request queue, quick actions
-find-ride.html          Find a Ride (search + filters)
-post-ride.html          Post a Ride
-my-rides.html           My Rides (driving / joining / requests to me / my requests)
-ride.html               Ride Details (?id=…)
-profile.html            Profile — own (editable) or another member's (?id=…)
-groups.html             Trusted Groups
-safety.html             Safety Center (+ community rules, report form)
-login.html              Log in
-signup.html             Sign up
-reset-password.html     Request a password reset email
-update-password.html    Choose a new password (opened from the reset email)
-guardian.html           Parent / Guardian dashboard
-notifications.html      Notification centre
-admin.html              Admin dashboard
-404.html                Not found
+CarBuddy/                  one flat folder — no subfolders
 
-assets/css/styles.css   Whole design system: tokens, components, responsive rules
-assets/js/ui.js         Web-only UI: global navbar/footer, toasts, modals, ride cards,
-                        auth guards, loading/error/empty states, back links
-assets/js/pages/*.js    One controller per page (15 files)
+  ── pages (17) ──────────────────────────────────────────────────────────
+  index.html               Home / landing page
+  dashboard.html           Welcome, stats, driver request queue, quick actions
+  find-ride.html           Every current ride, plus mile-radius filtering
+  post-ride.html           Post a Ride
+  my-rides.html            Driving / joining / requests to me / my requests
+  ride.html                Ride Details (?id=…)
+  profile.html             Own profile (editable) or another member's (?id=…)
+  groups.html              Trusted Groups
+  safety.html              Safety Center, community rules, report form
+  login.html               Log in
+  signup.html              Sign up
+  reset-password.html      Request a password reset email
+  update-password.html     Choose a new password (from the reset email)
+  guardian.html            Parent / Guardian dashboard
+  notifications.html       Notification centre
+  admin.html               Admin dashboard
+  404.html                 Not found
 
-shared/                 ← copy this folder straight into the Expo app
-  config.js             Supabase URL + publishable key            (YOU EDIT THIS)
-  client.js             Creates the Supabase client               (swap for RN version)
-  constants.js          Enum labels shared by web + mobile
-  format.js             Pure helpers: seat states, dates, money, stars
-  auth.js               Sign up / in / out, password reset
-  profiles.js           Public profile, private profile, avatar upload, verification
-  rides.js              Search, create, update, cancel, complete, participants, meetups
-  requests.js           Request to join, accept/reject, withdraw, inbox/outbox
-  groups.js             Trusted groups + membership
-  guardian.js           Guardian linking + ride approval
-  safety.js             Reports, blocking, ratings
-  notifications.js      List, mark read, realtime subscription
-  admin.js              Admin-only reads and actions
+  ── styling and shared UI ───────────────────────────────────────────────
+  styles.css               Whole design system: tokens, components, responsive
+  ui.js                    Global navbar/footer, toasts, modals, ride cards,
+                           auth guards, loading/error/empty states, back links
 
-supabase/migrations/    8 SQL files — run in order (see §3)
-.github/workflows/deploy.yml   GitHub Pages deployment
-.nojekyll                Stops GitHub Pages from mangling the folders
+  ── one controller per page (15), prefixed `page-` ──────────────────────
+  page-dashboard.js  page-find-ride.js  page-post-ride.js  page-my-rides.js
+  page-ride.js       page-profile.js    page-groups.js     page-safety.js
+  page-guardian.js   page-notifications.js  page-admin.js  page-login.js
+  page-signup.js     page-reset-password.js page-update-password.js
+
+  ── data layer (14) — copy these into the Expo app ──────────────────────
+  config.js                Supabase URL + publishable key
+  client.js                Creates the Supabase client (swap for the RN version)
+  constants.js             Enum labels shared by web + mobile
+  format.js                Pure helpers: seat states, dates, money, stars
+  geocode.js               Nominatim geocoding, rate-limited and cached
+  auth.js                  Sign up / in / out, password reset
+  profiles.js              Public profile, private profile, avatar, verification
+  rides.js                 Search, radius search, create, cancel, participants
+  requests.js              Request to join, accept/reject, withdraw, inbox
+  groups.js                Trusted groups + membership
+  guardian.js              Guardian linking + ride approval
+  safety.js                Reports, blocking, ratings
+  notifications.js         List, mark read, realtime subscription
+  admin.js                 Admin-only reads and actions
+
+  ── database (12) — all already applied to the live project ─────────────
+  0001_types_and_profiles.sql  …  0012_lock_down_function_execute_and_search_path.sql
+
+  ── deployment ──────────────────────────────────────────────────────────
+  deploy.yml               Optional GitHub Actions workflow (see §6)
+  .nojekyll                Stops GitHub Pages mangling the filenames
+  .gitignore
+  README.md
 ```
 
-Nothing was overwritten — this was an empty project directory.
-
-### Finding rides by distance
-
-Rides store `origin_lat` / `origin_lng`, geocoded from the typed place name when
-the ride is posted. Find a Ride shows **every current ride** by default; adding a
-location turns on a mile-radius slider that filters and sorts by how far each
-pickup point is from you.
-
-The distance is computed by `public.search_rides_nearby()` in Postgres, not in the
-browser — a bounding box narrows the rows using the coordinate index, then an
-exact great-circle check finishes the job. Row Level Security still applies, so a
-group-only ride stays invisible to non-members.
-
-Geocoding uses **Nominatim (OpenStreetMap)**: free, no API key, but rate-limited
-to one request per second and not intended for heavy commercial use.
-`shared/geocode.js` handles the queue and caches results in `localStorage` for a
-month. If a place cannot be geocoded the ride still posts — it just will not
-appear in radius-filtered results, and the form says so. To switch to Google or
-Mapbox later, `shared/geocode.js` is the only file that changes.
+**Naming.** Page controllers carry a `page-` prefix so they cannot collide with the
+data-layer modules — `admin.js`, `groups.js`, `guardian.js`, `notifications.js` and
+`safety.js` exist in both roles. Everything imports by plain filename: `./ui.js`,
+`./rides.js`, and so on.
 
 ### Routing
 
-Plain multi-page navigation — no client-side router, no hash routes, no `href="#"`.
-Every link is a real relative URL, so the browser back button, middle-click, and
-bookmarking all behave normally.
+Plain multi-page navigation — no client-side router, no hash routes, no dead anchors.
+Every link is a real relative URL, so the back button, middle-click, and bookmarking all
+behave normally.
 
 | Nav item | File |
 |---|---|
@@ -91,7 +90,7 @@ bookmarking all behave normally.
 | Profile | `profile.html` |
 | More ▾ | `groups.html`, `safety.html`, `notifications.html`, `guardian.html`, `admin.html` (admins only) |
 
-The navbar is rendered once in `assets/js/ui.js` and injected into the `<div id="nav">`
+The navbar is rendered once in `ui.js` and injected into the `<div id="nav">`
 placeholder on every page, so the two can never drift apart. Signed out it collapses to
 Home / Find a Ride / Safety with Log in and Sign up. Signed in it shows the member's name,
 photo, unread-notification count, and a working Log out. Below 900px everything folds into
@@ -106,15 +105,32 @@ from — "← Back to Find a Ride" versus "← Back to My Rides".
 calls `requireAdmin()`. Both are conveniences — Row Level Security is what actually stops
 unauthorised reads and writes.
 
+### Finding rides by distance
+
+Rides store `origin_lat` / `origin_lng`, geocoded from the typed place name when the ride
+is posted. Find a Ride shows **every current ride** by default; adding a location turns on
+a mile-radius slider that filters and sorts by how far each pickup point is from you.
+
+The distance is computed by `public.search_rides_nearby()` in Postgres, not in the browser
+— a bounding box narrows the rows using the coordinate index, then an exact great-circle
+check finishes the job. Row Level Security still applies, so a group-only ride stays
+invisible to non-members.
+
+Geocoding uses **Nominatim (OpenStreetMap)**: free, no API key, but rate-limited to one
+request per second and not intended for heavy commercial use. `geocode.js` handles
+the queue and caches results in `localStorage` for a month. If a place cannot be geocoded
+the ride still posts — it just will not appear in radius-filtered results, and the form
+says so. To switch to Google or Mapbox later, `geocode.js` is the only file that changes.
+
 ---
 
 ## 2. Supabase tables
 
 | Table | Purpose |
 |---|---|
-| `profiles` | Public-safe profile: name, photo, bio, area, age category, verification, rating, rides completed. **No contact details.** |
+| `profiles` | Public-safe profile: name, photo, bio, area, age category, verification, rating, rides completed, home coordinates. **No contact details.** |
 | `profiles_private` | Email, phone, date of birth, emergency contact. Readable only by the owner, their guardian, and admins. |
-| `rides` | Route, date/time, `seats_offered`, `seats_taken`, generated `seats_remaining`, contribution, notes, visibility, status. |
+| `rides` | Route, coordinates, date/time, `seats_offered`, `seats_taken`, generated `seats_remaining`, contribution, notes, visibility, status. |
 | `ride_meetups` | Meetup place + notes. Separate table so it can be locked to confirmed riders only. |
 | `ride_requests` | One row per ask. `status` (pending/accepted/rejected/cancelled) + `guardian_status`. |
 | `ride_participants` | Confirmed seats. The only thing `seats_taken` is ever derived from. |
@@ -134,14 +150,12 @@ Storage: one public `avatars` bucket, writable only inside `avatars/<your-user-i
 
 ---
 
-## 3. SQL to run
+## 3. SQL
 
-Run the files **in order**. Either paste each into the Supabase SQL editor, or use the CLI:
-
-```bash
-supabase link --project-ref <your-project-ref>
-supabase db push
-```
+**All twelve migrations are already applied to the live project.** You only need to run
+them if you rebuild the database elsewhere — in numeric order, pasted into the Supabase SQL
+editor. (The Supabase CLI expects them under `supabase/migrations/`; recreate that folder
+if you would rather use `supabase db push`.)
 
 | File | Contains |
 |---|---|
@@ -158,23 +172,20 @@ supabase db push
 | `0011_guards_scoped_to_client_roles.sql` | Guards scoped to client roles so account deletion works |
 | `0012_lock_down_function_execute_and_search_path.sql` | Revoke RPC EXECUTE from `anon`; pin every `search_path` |
 
-**All twelve are already applied** to the live project. You only need to run them
-if you rebuild the database elsewhere.
-
 Then, **once**, after signing up with the account that should be the administrator:
 
 ```sql
 select public.bootstrap_admin('you@example.com');
 ```
 
-It refuses to run a second time, so it cannot be abused later. Further admins are
-promoted from the admin dashboard.
+It refuses to run a second time, so it cannot be abused later. Further admins are promoted
+from the admin dashboard.
 
 ### Why overbooking is impossible
 
-`seats_taken` is not writable by any client. A `BEFORE UPDATE` trigger on `rides`
-rejects any change to it unless the transaction has been marked privileged, and only
-`SECURITY DEFINER` functions can set that mark. Those functions do:
+`seats_taken` is not writable by any client. A `BEFORE UPDATE` trigger on `rides` rejects
+any change to it from a client role, and only `SECURITY DEFINER` functions can mark a
+transaction privileged. Those functions do:
 
 ```sql
 select * into v_ride from public.rides where id = ... for update;   -- row lock
@@ -182,16 +193,16 @@ select * into v_ride from public.rides where id = ... for update;   -- row lock
 update public.rides set seats_taken = seats_taken + v_req.seats_requested ...;
 ```
 
-Two drivers accepting the last seat at the same instant serialise on that lock; the
-second one re-reads a `seats_remaining` of 0 and gets an error. A `CHECK
-(seats_taken <= seats_offered)` constraint is the final backstop. The frontend
-disabling the button is a courtesy, not the control.
+Two drivers accepting the last seat at the same instant serialise on that lock; the second
+re-reads a `seats_remaining` of 0 and gets an error. A `CHECK (seats_taken <=
+seats_offered)` constraint is the final backstop. The frontend disabling the button is a
+courtesy, not the control.
 
 ---
 
 ## 4. Configuration
 
-**Already done.** `shared/config.js` points at the live project:
+**Already done.** `config.js` points at the live project:
 
 | | |
 |---|---|
@@ -200,19 +211,16 @@ disabling the button is a courtesy, not the control.
 | URL | `https://dlelgqrpfebevvkdlvba.supabase.co` |
 | Region | us-east-2 |
 
-All 12 migrations are applied and the database is empty of test data.
-
-There are no other environment variables. The publishable/anon key is *designed* to
-ship in client code — every table is behind RLS, so the key alone grants nothing.
-**Never put the `service_role` key in this repository.**
+The publishable key is *designed* to ship in client code — every table is behind RLS, so
+the key alone grants nothing. **Never put the `service_role` key in this repository.**
 
 ### The one thing you must still do by hand
 
 **Authentication → Sign In / Providers → Email → turn OFF "Confirm email".**
-There is no API for this setting, so I could not do it for you. Until it is off,
-signup sends a verification email and the new account cannot sign in immediately.
-The signup page handles both states: with confirmation off it signs you straight
-in; with it on it falls back to a "check your email" message.
+There is no API for this setting, so it could not be done for you. Until it is off, signup
+sends a verification email and the new account cannot sign in immediately. The signup page
+handles both states: with confirmation off it signs you straight in; with it on it falls
+back to a "check your email" message.
 
 Also set, in the Supabase dashboard:
 
@@ -220,8 +228,6 @@ Also set, in the Supabase dashboard:
   (e.g. `https://<user>.github.io/<repo>/`)
 - **Redirect URLs**: add `https://<user>.github.io/<repo>/*` and, for local work,
   `http://localhost:8000/*`
-- **Authentication → Providers → Email**: keep "Confirm email" on for real use.
-  Turn it off temporarily if you want to test signup without checking an inbox.
 
 ---
 
@@ -230,19 +236,22 @@ Also set, in the Supabase dashboard:
 ES modules need a real HTTP server — opening `index.html` from the filesystem will not work.
 
 ```bash
-cd <project folder>
+cd CarBuddy
 python3 -m http.server 8000
 # or:  npx serve .
 ```
 
-Then open <http://localhost:8000>. Add `http://localhost:8000/*` to your Supabase
-redirect URLs first, or email links will bounce back to the wrong host.
+Then open <http://localhost:8000>. Add `http://localhost:8000/*` to your Supabase redirect
+URLs first, or email links will bounce back to the wrong host.
 
 ---
 
 ## 6. Deploying to GitHub Pages
 
+Run these from **inside the `CarBuddy` folder** — it is the repository root.
+
 ```bash
+cd CarBuddy
 git init
 git add .
 git commit -m "CarBuddy"
@@ -251,22 +260,27 @@ git remote add origin https://github.com/<user>/<repo>.git
 git push -u origin main
 ```
 
-Then **Settings → Pages → Build and deployment → Source: GitHub Actions**. The included
-workflow publishes the repository root on every push to `main`. The site appears at
-`https://<user>.github.io/<repo>/`.
+Then **Settings → Pages → Build and deployment → Source: Deploy from a branch**, branch
+`main`, folder `/ (root)`. There is no build step, so GitHub serves the files as they are.
+The site appears at `https://<user>.github.io/<repo>/`.
 
-All internal links are relative, so the sub-path deployment works without changes.
-Put your Pages URL into Supabase's Site URL and Redirect URLs, or password reset and
-email confirmation will fail.
+> **About `deploy.yml`.** GitHub Actions only reads workflows from `.github/workflows/`,
+> and this project has no folders, so the file sits at the top level as a reference and is
+> inert. Branch deployment above needs no workflow at all. If you would rather deploy via
+> Actions, create the folder and move it: `mkdir -p .github/workflows && git mv deploy.yml
+> .github/workflows/`, then switch the Pages source to **GitHub Actions**.
+
+All internal links are relative, so the sub-path deployment works without changes. Put your
+Pages URL into Supabase's Site URL and Redirect URLs, or password reset will fail.
 
 ---
 
-## 7. Testing the finished website
+## 7. Testing
 
-### What I already verified against the live database
+### What was verified against the live database
 
-Not simulated — these ran as the `authenticated` role with real JWT claims, so
-every Row Level Security policy was live:
+Not simulated — these ran as the `authenticated` role with real JWT claims, so every Row
+Level Security policy was live:
 
 | Area | Result |
 |---|---|
@@ -279,48 +293,39 @@ every Row Level Security policy was live:
 | 12 tamper attempts | all blocked — seat counts, self-promotion to admin, self-verification, rating inflation, accepting someone else's request, editing/deleting someone else's ride, faking a rating, adding yourself to a ride, pre-accepted requests, calling admin functions, calling `begin_privileged()` |
 | Private data | a member sees exactly 1 row in `profiles_private` (their own) and 0 meetup rows for rides they are not on |
 
-Two real bugs surfaced during that run and are fixed in migrations 0010 and 0011:
-deleting an account failed because the write guards blocked the foreign-key
-cascades. The linter then surfaced a third: every RPC was callable by signed-out
-visitors, fixed in 0012.
+Two real bugs surfaced during that run and are fixed in migrations 0010 and 0011: deleting
+an account failed because the write guards blocked the foreign-key cascades. The linter then
+surfaced a third: every RPC was callable by signed-out visitors, fixed in 0012.
 
 ### Walk it yourself
 
-Start the server, then walk this path. Every step touches the real database.
-
-1. **Sign up** at `signup.html` as *Driver A*. If email confirmation is on, click the link.
-2. **Log in** → you land on `dashboard.html`. The navbar shows your name and a Log out button.
-3. **Navigate** Home → Find a Ride → Dashboard → Profile using only the navbar. Shrink the
+1. **Sign up** as *Driver A*. With email confirmation off you land straight on the dashboard.
+2. **Navigate** Home → Find a Ride → Dashboard → Profile using only the navbar. Shrink the
    window below 900px and repeat through the hamburger.
-4. **Profile** → set a phone number and photo, save, reload. The values persist.
-5. **Post a ride** with 2 seats. You get "Ride posted successfully!" and land on the ride page.
-6. **Find a Ride** → the ride appears. Search its destination; it still appears. Search
-   nonsense; you get "No rides found. Try changing your search."
-7. **Open the ride** → all details load from the database, seats show 🟢 2 seats available.
-8. **Sign up as Rider B** in a private window. Request to join → "Request sent. The driver
+3. **Profile** → set a phone number, photo, and home area; save; reload. Values persist, and
+   the home area is geocoded so "Near my area" appears on Find a Ride.
+4. **Post a ride** with 2 seats. You get "Ride posted successfully!" and land on the ride page.
+5. **Find a Ride** → the ride is listed with no search needed. Press *Use my location*, drag
+   the radius slider, and watch the list filter by distance. Search nonsense to see
+   "No rides found. Try changing your search."
+6. **Sign up as Rider B** in a private window. Request to join → "Request sent. The driver
    will review your request." The ride is *not* joined yet.
-9. **Back as Driver A** → Dashboard shows the request. Accept it. Seats drop to 🟡 1 seat
-   available, and the count on Find a Ride matches.
-10. **As Rider B** → the ride now appears under My Rides → Rides I'm Joining, with the
-    meetup point and contact details that were hidden before.
-11. **Sign up as Rider C**, request, and have Driver A accept → 🔴 Ride full, and the
-    Request to Join button is gone for everyone else.
-12. **Rider D** tries to request → the server refuses. Do this by calling
-    `request_to_join` from two browsers at the same moment on a one-seat ride: exactly one
-    succeeds, the other gets "Only 0 seat(s) left on this ride".
-13. **Log out** → you land on the home page.
-14. **Visit `dashboard.html` directly while logged out** → you are bounced to
-    `login.html?next=dashboard.html`, and after logging in you arrive back at the dashboard.
+7. **Back as Driver A** → the Dashboard shows the request. Accept it. Seats drop to 🟡 1 seat
+   available everywhere.
+8. **As Rider B** → the ride appears under My Rides → Rides I'm Joining, with the meetup point
+   and contact details that were hidden before.
+9. **Rider C** requests and is accepted → 🔴 Ride full, and the request button is gone.
+10. **Log out** → you land on the home page. Visit `dashboard.html` directly → you are bounced
+    to `login.html?next=dashboard.html`, and after logging in you arrive at the dashboard.
 
-To prove the security rules rather than trust them, open the browser console while signed
-in as Rider B and try:
+To prove the security rules rather than trust them, open the console while signed in and try:
 
 ```js
 // all of these must fail
-await supabase.from('rides').update({ seats_taken: 0 }).eq('id', '<Driver A ride id>');
+await supabase.from('rides').update({ seats_taken: 0 }).eq('id', '<someone else's ride>');
 await supabase.from('profiles').update({ is_admin: true }).eq('id', '<your id>');
 await supabase.from('profiles').update({ verification_status: 'verified' }).eq('id', '<your id>');
-await supabase.from('ride_requests').update({ status: 'accepted' }).eq('id', '<your request>');
+await supabase.from('ride_requests').update({ status: 'accepted' }).eq('id', '<a request>');
 await supabase.from('profiles_private').select('*');   // returns only your own row
 ```
 
@@ -328,54 +333,47 @@ await supabase.from('profiles_private').select('*');   // returns only your own 
 
 ## 8. Before you launch publicly
 
-Honest list of what is *not* done. Everything above works; these do not:
+Honest list of what is *not* done.
 
 **Must do**
 
-- [ ] **Run the migrations and fill in `shared/config.js`.** Until then the site loads
-      but shows a configuration banner and no data. Nothing is faked or mocked.
-- [ ] **Bootstrap an admin** (`select public.bootstrap_admin('…')`) — otherwise no one
-      can review reports or approve verifications.
-- [ ] **Real identity verification.** Today "verified" means an admin clicked Approve.
-      There is no ID document check, licence check, or insurance check. Decide what
-      evidence you require and build the intake for it before advertising the badge.
-- [ ] **Legal review.** Terms of service, privacy policy, and a clear statement that you
-      are not a transport provider. Carrying minors and accepting contributions have
-      real regulatory implications that vary by state — get advice.
+- [ ] **Turn off "Confirm email"** in the Supabase dashboard (see §4).
+- [ ] **Bootstrap an admin** — otherwise nobody can review reports or approve verifications.
+- [ ] **Real identity verification.** Today "verified" means an admin clicked Approve. There
+      is no ID document check, licence check, or insurance check. Decide what evidence you
+      require and build the intake before advertising the badge.
+- [ ] **Legal review.** Terms of service, privacy policy, and a clear statement that you are
+      not a transport provider. Carrying minors and accepting contributions have real
+      regulatory implications that vary by state — get advice.
 - [ ] **Minor-safety policy sign-off.** Guardian approval is enforced technically, but you
-      still need a written policy on what happens when a report involves a minor, and
-      COPPA/parental-consent handling if anyone under 13 could sign up.
-- [ ] **Abuse rate limits.** Supabase caps auth requests, but nothing throttles ride
-      posting, request spam, or report spam. Add a per-user rate limit (a small
-      `rate_limits` table checked inside the RPCs is enough).
-- [ ] **Email deliverability.** Supabase's built-in SMTP is for development only and will
-      be throttled. Connect your own SMTP provider before real signups.
-- [ ] **Run the Supabase advisors** (Database → Advisors) after applying migrations and
-      resolve anything flagged.
+      still need a written policy for reports involving a minor, and COPPA/parental-consent
+      handling if anyone under 13 could sign up.
+- [ ] **Abuse rate limits.** Nothing throttles ride posting, request spam, or report spam. A
+      small `rate_limits` table checked inside the RPCs is enough.
+- [ ] **Email deliverability.** Supabase's built-in SMTP is for development only. Connect your
+      own SMTP provider before real signups.
+- [ ] **Re-run the Supabase advisors** after any schema change.
 
 **Should do**
 
-- [ ] Address autocomplete / geocoding — search is currently plain text matching, so
-      "Frisco" and "Frisco, TX" are different strings.
-- [ ] Automatic ride completion. Right now a driver marks a ride completed by hand; a
-      scheduled job (`pg_cron`) should flip past rides to `completed` so ratings unlock.
-- [ ] Email/SMS notifications. Notification rows exist and arrive live in the browser,
-      but nothing is emailed or texted yet.
-- [ ] Two-way ratings prompt after a ride, and a way to dispute a rating.
+- [ ] Address autocomplete in the ride form (the geocoder already supports `suggest()`).
+- [ ] Automatic ride completion via `pg_cron` so ratings unlock without the driver acting.
+- [ ] Email/SMS notifications — rows exist and arrive live in the browser, but nothing is sent.
+- [ ] A way to dispute a rating.
 - [ ] Group admin transfer, and deleting a group that still has rides attached.
-- [ ] Accessibility pass: keyboard traps in modals, focus return, screen-reader labels on
-      the star-rating buttons.
-- [ ] Automated tests — especially a concurrency test that fires two `respond_to_request`
-      calls at the same last seat and asserts one fails.
+- [ ] Accessibility pass: focus traps in modals, screen-reader labels on the star buttons.
+- [ ] Automated tests, especially a concurrency test firing two `respond_to_request` calls at
+      the same last seat.
 
 ---
 
 ## Mobile app readiness
 
-Everything in `shared/` is plain ES modules with **no DOM access**. To build the Expo app:
+The 14 data-layer modules listed in §1 are plain ES modules with **no DOM access** — they
+never touch `document`, `window`, or the navbar. To build the Expo app:
 
-1. Copy `shared/` into the app.
-2. Replace **only** `shared/client.js`:
+1. Copy those 14 files into the app (everything except `ui.js` and the `page-*.js` files).
+2. Replace **only** `client.js`:
 
    ```js
    import { createClient } from '@supabase/supabase-js';
@@ -387,12 +385,13 @@ Everything in `shared/` is plain ES modules with **no DOM access**. To build the
              persistSession: true, detectSessionInUrl: false },
    });
    ```
-3. Everything else — auth, profiles, rides, requests, seat tracking, notifications,
-   ratings, trusted groups, guardian relationships, reports — imports unchanged.
+3. Everything else — auth, profiles, rides, radius search, requests, seat tracking,
+   notifications, ratings, trusted groups, guardian relationships, reports — imports unchanged.
+   In `geocode.js`, swap `currentPosition()` for `expo-location`.
 
-No business logic lives in the browser. Seat counting, guardian gating, rating
-eligibility, admin authorisation, and visibility rules are all inside Postgres, so the
+No business logic lives in the browser. Seat counting, guardian gating, rating eligibility,
+admin authorisation, distance filtering, and visibility rules are all inside Postgres, so the
 mobile app inherits identical behaviour and identical security without a rewrite.
 
-`shared/notifications.js` already exposes `subscribe(userId, cb)` over Supabase Realtime;
-in Expo you point that callback at `expo-notifications` and you have push.
+`notifications.js` already exposes `subscribe(userId, cb)` over Supabase Realtime; in
+Expo you point that callback at `expo-notifications` and you have push.

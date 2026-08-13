@@ -4,19 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Find a Ride · CarBuddy</title>
-<meta name="description" content="Search rides going your way and request a seat.">
+<meta name="description" content="Browse current rides, filter by distance, and request a seat.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
-<link rel="stylesheet" href="assets/css/styles.css">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div id="nav"></div>
-
 <main class="wrap section-tight">
   <a class="back-link" href="dashboard.html"><span aria-hidden="true">←</span> Back to Dashboard</a>
   <div class="row-between mb-3">
     <div>
       <h1 style="font-size:1.9rem;margin-bottom:.2rem">Find a Ride</h1>
-      <p class="muted small mb-0">Search trips people are already taking. You request a seat — the driver decides.</p>
+      <p class="muted small mb-0">Every current ride is listed below. You request a seat — the driver decides.</p>
     </div>
     <a class="btn btn-secondary" href="post-ride.html">Post a Ride instead</a>
   </div>
@@ -29,7 +28,6 @@
         <input type="search" id="destination" placeholder="Plano, TX" autocomplete="off"></label>
     </div>
 
-    <!-- distance -->
     <fieldset style="border:0;padding:0;margin:0 0 1rem">
       <legend class="label" style="padding:0">Distance from your pickup point</legend>
       <div class="row" style="gap:.5rem;align-items:center">
@@ -94,8 +92,7 @@
 
   <div id="results"></div>
 </main>
-
 <div id="footer"></div>
-<script type="module" src="assets/js/pages/find-ride.js"></script>
+<script type="module" src="page-find-ride.js"></script>
 </body>
 </html>

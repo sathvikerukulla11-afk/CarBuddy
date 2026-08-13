@@ -91,7 +91,7 @@ p  { margin: 0 0 1rem; }
 .strong { font-weight: 600; }
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 .mt-0{margin-top:0}.mt-1{margin-top:.5rem}.mt-2{margin-top:1rem}.mt-3{margin-top:1.5rem}.mt-4{margin-top:2rem}
-.mb-0{margin-bottom:0}.mb-1{margin-bottom:.5rem}.mb-2{margin-bottom:1rem}.mb-3{margin-bottom:1.5rem}
+.mb-0{margin-bottom:0}.mb-1{margin-bottom:.5rem}.mb-2{margin-bottom:1rem}.mb-3{margin-bottom:1.5rem}.mb-4{margin-bottom:2rem}
 .hidden { display: none !important; }
 .stack { display: grid; gap: 1rem; }
 .stack-sm { display: grid; gap: .5rem; }
@@ -129,7 +129,7 @@ p  { margin: 0 0 1rem; }
 
 .nav-toggle {
   margin-left: auto; display: inline-grid; place-items: center;
-  width: 40px; height: 40px; border: 1px solid var(--line-2);
+  width: 44px; height: 44px; border: 1px solid var(--line-2);
   background: var(--surface); border-radius: var(--r-sm); cursor: pointer; font-size: 18px;
 }
 .nav-drawer {
@@ -141,7 +141,23 @@ p  { margin: 0 0 1rem; }
   display: block; padding: .7rem .4rem; color: var(--ink-2);
   font-weight: 500; border-bottom: 1px solid var(--line);
 }
-.nav-drawer a:last-child { border-bottom: 0; }
+.nav-drawer a:last-of-type { border-bottom: 0; }
+
+.avatar {
+  width: 34px; height: 34px; border-radius: 50%; object-fit: cover;
+  background: var(--brand-100); color: var(--brand-700);
+  display: grid; place-items: center; font-weight: 700; font-size: .82rem;
+  border: 1px solid var(--line); flex: 0 0 auto;
+}
+.avatar-lg { width: 76px; height: 76px; font-size: 1.5rem; }
+.avatar-sm { width: 26px; height: 26px; font-size: .68rem; }
+
+.bell { position: relative; }
+.bell-dot {
+  position: absolute; top: -3px; right: -3px; min-width: 17px; height: 17px;
+  padding: 0 4px; border-radius: 9px; background: var(--danger); color: #fff;
+  font-size: .66rem; font-weight: 700; display: grid; place-items: center;
+}
 
 /* signed-in user chip in the top-right */
 .nav-user {
@@ -196,22 +212,6 @@ p  { margin: 0 0 1rem; }
 /* narrow desktop: keep the bar from wrapping by hiding the name text */
 @media (min-width: 900px) and (max-width: 1080px) {
   .nav-user-name { display: none; }
-}
-
-.avatar {
-  width: 34px; height: 34px; border-radius: 50%; object-fit: cover;
-  background: var(--brand-100); color: var(--brand-700);
-  display: grid; place-items: center; font-weight: 700; font-size: .82rem;
-  border: 1px solid var(--line); flex: 0 0 auto;
-}
-.avatar-lg { width: 76px; height: 76px; font-size: 1.5rem; }
-.avatar-sm { width: 26px; height: 26px; font-size: .68rem; }
-
-.bell { position: relative; }
-.bell-dot {
-  position: absolute; top: -3px; right: -3px; min-width: 17px; height: 17px;
-  padding: 0 4px; border-radius: 9px; background: var(--danger); color: #fff;
-  font-size: .66rem; font-weight: 700; display: grid; place-items: center;
 }
 
 /* ------------------------------------------------------------ buttons ---- */
@@ -291,6 +291,7 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 3px var(--brand-100);
 }
 input:disabled, select:disabled, textarea:disabled { background: var(--surface-2); color: var(--muted); }
+input[type="range"] { padding: 0; border: 0; background: transparent; }
 
 .check { display: flex; gap: .6rem; align-items: flex-start; margin-bottom: .6rem; cursor: pointer; }
 .check input[type="checkbox"], .check input[type="radio"] {
@@ -354,42 +355,6 @@ input:disabled, select:disabled, textarea:disabled { background: var(--surface-2
 .ride-driver .name { font-weight: 600; font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .contribution { font-weight: 700; color: var(--ink); }
 
-.loading-line {
-  display: flex; align-items: center; gap: .6rem;
-  color: var(--muted); font-size: .92rem; padding: .9rem 0 1.1rem;
-}
-.spinner {
-  width: 16px; height: 16px; flex: 0 0 auto; border-radius: 50%;
-  border: 2px solid var(--line-2); border-top-color: var(--brand-600);
-  animation: spin .7s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) {
-  .spinner { animation-duration: 2s; }
-  .skeleton { animation: none; }
-}
-
-.back-link {
-  display: inline-flex; align-items: center; gap: .3rem;
-  font-size: .89rem; font-weight: 500; color: var(--muted);
-  margin-bottom: .85rem; min-height: 34px;
-}
-.back-link:hover { color: var(--brand-700); text-decoration: none; }
-
-/* dashboard quick actions */
-.quick-action {
-  display: flex; flex-direction: column; gap: .15rem;
-  text-decoration: none; color: inherit;
-}
-.quick-action:hover { text-decoration: none; }
-.quick-action .feature-icon { margin-bottom: .4rem; }
-
-/* two-column ride detail: stacks on phones, side-by-side on wide screens */
-.ride-layout { display: grid; grid-template-columns: 1fr; gap: 1.25rem; margin-top: 1rem; }
-@media (min-width: 940px) {
-  .ride-layout { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); align-items: start; }
-}
-
 /* --------------------------------------------------------------- hero ---- */
 .hero {
   position: relative; overflow: hidden;
@@ -427,6 +392,43 @@ input:disabled, select:disabled, textarea:disabled { background: var(--surface-2
 .eyebrow {
   text-transform: uppercase; letter-spacing: .1em; font-size: .74rem;
   font-weight: 800; color: var(--brand-700); margin-bottom: .5rem;
+}
+
+/* --------------------------------------------------- loading / states ---- */
+.loading-line {
+  display: flex; align-items: center; gap: .6rem;
+  color: var(--muted); font-size: .92rem; padding: .9rem 0 1.1rem;
+}
+.spinner {
+  width: 16px; height: 16px; flex: 0 0 auto; border-radius: 50%;
+  border: 2px solid var(--line-2); border-top-color: var(--brand-600);
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation-duration: 2s; }
+  .skeleton { animation: none; }
+}
+
+.back-link {
+  display: inline-flex; align-items: center; gap: .3rem;
+  font-size: .89rem; font-weight: 500; color: var(--muted);
+  margin-bottom: .85rem; min-height: 34px;
+}
+.back-link:hover { color: var(--brand-700); text-decoration: none; }
+
+/* dashboard quick actions */
+.quick-action {
+  display: flex; flex-direction: column; gap: .15rem;
+  text-decoration: none; color: inherit;
+}
+.quick-action:hover { text-decoration: none; }
+.quick-action .feature-icon { margin-bottom: .4rem; }
+
+/* two-column ride detail: stacks on phones, side-by-side on wide screens */
+.ride-layout { display: grid; grid-template-columns: 1fr; gap: 1.25rem; margin-top: 1rem; }
+@media (min-width: 940px) {
+  .ride-layout { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); align-items: start; }
 }
 
 /* --------------------------------------------------------------- misc ---- */
@@ -507,12 +509,6 @@ table.data tr:last-child td { border-bottom: 0; }
   padding: .85rem 1rem; border-radius: 0 var(--r) var(--r) 0;
   font-size: .88rem; color: #16367e;
 }
-
-.notice-strip {
-  background: var(--brand-900); color: var(--brand-100);
-  font-size: .82rem; padding: .5rem 0; text-align: center;
-}
-.notice-strip a { color: #fff; text-decoration: underline; }
 
 /* ------------------------------------------------------ touch ergonomics -- */
 /* On touch devices every interactive element gets a 44px target, which is the

@@ -8,8 +8,7 @@ insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_typ
 values ('avatars', 'avatars', true, 3145728,
         array['image/png', 'image/jpeg', 'image/webp', 'image/gif'])
 on conflict (id) do update
-  set public = true,
-      file_size_limit = 3145728,
+  set public = true, file_size_limit = 3145728,
       allowed_mime_types = array['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
 
 drop policy if exists "avatars are publicly readable" on storage.objects;
@@ -33,34 +32,26 @@ create policy "members delete their own avatar" on storage.objects
 
 -- ---------------------------------------------------------------------------
 -- Promote the first administrator. Run this ONCE, from the Supabase SQL editor,
--- after you have signed up with the account that should own the admin console:
+-- after signing up with the account that should own the admin console:
 --
 --   select public.bootstrap_admin('you@example.com');
 --
--- It refuses to run once any admin already exists, so it cannot be abused later.
+-- It refuses to run once any admin exists, so it cannot be abused later.
 -- ---------------------------------------------------------------------------
 create or replace function public.bootstrap_admin(p_email text)
-returns text
-language plpgsql
-security definer
-set search_path = public, pg_temp
+returns text language plpgsql security definer set search_path = public, pg_temp
 as $$
 declare v_id uuid;
 begin
   if exists (select 1 from public.profiles where is_admin) then
     raise exception 'An administrator already exists. Promote further admins from the admin dashboard.';
   end if;
-
   select id into v_id from auth.users where lower(email) = lower(trim(p_email));
   if v_id is null then
     raise exception 'No account found for %. Sign up first, then run this again.', p_email;
   end if;
-
   perform public.begin_privileged();
-  update public.profiles
-     set is_admin = true, verification_status = 'verified'
-   where id = v_id;
-
+  update public.profiles set is_admin = true, verification_status = 'verified' where id = v_id;
   return 'Admin enabled for ' || p_email;
 end $$;
 
@@ -68,18 +59,12 @@ revoke all on function public.bootstrap_admin(text) from public, anon, authentic
 
 -- Existing admins can promote or demote other members from the dashboard.
 create or replace function public.admin_set_admin(p_user uuid, p_is_admin boolean)
-returns void
-language plpgsql
-security definer
-set search_path = public, pg_temp
+returns void language plpgsql security definer set search_path = public, pg_temp
 as $$
 begin
-  if not public.is_admin() then
-    raise exception 'Administrators only' using errcode = '42501';
-  end if;
+  if not public.is_admin() then raise exception 'Administrators only' using errcode = '42501'; end if;
   if p_user = auth.uid() and not p_is_admin then
-    raise exception 'You cannot remove your own admin access' using errcode = '22023';
-  end if;
+    raise exception 'You cannot remove your own admin access' using errcode = '22023'; end if;
   perform public.begin_privileged();
   update public.profiles set is_admin = p_is_admin where id = p_user;
 end $$;
@@ -88,15 +73,11 @@ grant execute on function public.admin_set_admin(uuid, boolean) to authenticated
 
 -- Members ask for verification; an admin approves it in the dashboard.
 create or replace function public.request_verification()
-returns void
-language plpgsql
-security definer
-set search_path = public, pg_temp
+returns void language plpgsql security definer set search_path = public, pg_temp
 as $$
 begin
   perform public.begin_privileged();
-  update public.profiles
-     set verification_status = 'pending'
+  update public.profiles set verification_status = 'pending'
    where id = auth.uid() and verification_status in ('unverified', 'rejected');
 end $$;
 

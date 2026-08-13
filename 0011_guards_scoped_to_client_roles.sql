@@ -96,8 +96,7 @@ begin
         using errcode = '42501';
     end if;
     if new.driver_id is distinct from old.driver_id then
-      raise exception 'A ride cannot be transferred to another driver'
-        using errcode = '42501';
+      raise exception 'A ride cannot be transferred to another driver' using errcode = '42501';
     end if;
     if new.seats_offered < old.seats_taken then
       raise exception 'You cannot offer fewer seats than are already filled (%).', old.seats_taken

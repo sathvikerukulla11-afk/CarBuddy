@@ -6,11 +6,10 @@
 <title>Post a Ride · CarBuddy</title>
 <meta name="description" content="Offer the empty seats on a trip you're already taking.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
-<link rel="stylesheet" href="assets/css/styles.css">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div id="nav"></div>
-
 <main class="wrap wrap-mid section-tight">
   <a class="back-link" href="dashboard.html"><span aria-hidden="true">←</span> Back to Dashboard</a>
   <h1 style="font-size:1.9rem;margin-bottom:.2rem">Post a Ride</h1>
@@ -24,7 +23,7 @@
       <div class="form-grid form-grid-2">
         <label class="field"><span>Starting location *</span>
           <input type="text" id="origin" required maxlength="120" placeholder="Frisco, TX">
-          <span class="hint">A landmark, area, or public place — not your street address.</span></label>
+          <span class="hint">Include the city and state so riders can find this by distance. A landmark or public place — not your street address.</span></label>
         <label class="field"><span>Destination *</span>
           <input type="text" id="destination" required maxlength="120" placeholder="Plano, TX"></label>
       </div>
@@ -95,8 +94,7 @@
     </div>
   </form>
 </main>
-
 <div id="footer"></div>
-<script type="module" src="assets/js/pages/post-ride.js"></script>
+<script type="module" src="page-post-ride.js"></script>
 </body>
 </html>

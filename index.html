@@ -6,7 +6,7 @@
 <title>CarBuddy — Share the Ride. Get There Together.</title>
 <meta name="description" content="Community carpooling for people already heading the same way. Verified members, trusted groups, and parent-approved rides for younger riders.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
-<link rel="stylesheet" href="assets/css/styles.css">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div id="nav"></div>
@@ -42,9 +42,9 @@
           <div class="route-when">Today • 5:30 PM</div>
         </div>
         <div class="ride-meta">
+          <span class="badge badge-brand">📍 2.4 mi away</span>
           <span class="seats seats-open">🟢 3 seats available</span>
           <span class="badge">$5 · in person</span>
-          <span class="badge badge-brand">👥 Frisco Robotics</span>
         </div>
         <div class="ride-foot">
           <div class="ride-driver">
@@ -62,6 +62,7 @@
           <div class="route-when">Tomorrow • 8:15 AM</div>
         </div>
         <div class="ride-meta">
+          <span class="badge badge-brand">📍 5.1 mi away</span>
           <span class="seats seats-last">🟡 1 seat available</span>
           <span class="badge">No contribution</span>
         </div>
@@ -97,8 +98,8 @@
         <p class="small muted mb-0">A driver already heading somewhere adds their route, date, time, and how many seats are genuinely free.</p>
       </div>
       <div class="card">
-        <div class="row" style="gap:.6rem;margin-bottom:.7rem"><span class="step-num">2</span><strong>You search and request</strong></div>
-        <p class="small muted mb-0">Filter by where you're going and when. Tap <em>Request to Join</em> — you never join automatically.</p>
+        <div class="row" style="gap:.6rem;margin-bottom:.7rem"><span class="step-num">2</span><strong>You search nearby</strong></div>
+        <p class="small muted mb-0">Browse every current ride, or filter to pickups within a few miles of you. Tap <em>Request to Join</em> — you never join automatically.</p>
       </div>
       <div class="card">
         <div class="row" style="gap:.6rem;margin-bottom:.7rem"><span class="step-num">3</span><strong>The driver decides</strong></div>
@@ -160,7 +161,7 @@
     </div>
     <div class="grid grid-3">
       <div class="card"><div class="feature-icon">✓</div><h3>Verified accounts</h3>
-        <p class="small muted mb-0">Members confirm their email and submit their details for review. Verification status is visible on every ride card and profile.</p></div>
+        <p class="small muted mb-0">Members confirm their details and submit them for review. Verification status is visible on every ride card and profile.</p></div>
       <div class="card"><div class="feature-icon">👪</div><h3>Guardian approval</h3>
         <p class="small muted mb-0">Riders under 18 must have a linked parent or guardian, and every single request waits for that adult's decision before a driver can accept.</p></div>
       <div class="card"><div class="feature-icon">👥</div><h3>Trusted groups</h3>
@@ -246,7 +247,7 @@
 
 <div id="footer"></div>
 <script type="module">
-  import { mountChrome } from './assets/js/ui.js';
+  import { mountChrome } from './ui.js';
   mountChrome({ active: 'Home' });
 </script>
 </body>
