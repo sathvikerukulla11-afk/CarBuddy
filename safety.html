@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Safety Center · CarBuddy</title>
+<meta name="description" content="How CarBuddy protects riders and drivers: verification, guardian approval, trusted groups, meetup guidance, reporting and blocking.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+<div id="nav"></div>
+
+<section class="hero" style="padding:48px 0 52px">
+  <div class="wrap">
+    <div class="eyebrow">Safety Center</div>
+    <h1 style="font-size:clamp(1.8rem,4vw,2.6rem)">Trusted community transportation</h1>
+    <p class="hero-lead">
+      CarBuddy exists so people who already share a school, a neighbourhood, or a team can
+      coordinate trips they're taking anyway. It is not a service for arranging rides between
+      strangers, and it is emphatically not a way for children to get into cars with adults
+      nobody knows. Everything below is how we keep it that way.
+    </p>
+  </div>
+</section>
+
+<main class="wrap section-tight">
+  <div class="grid grid-3 mb-4">
+    <div class="card"><div class="feature-icon">✓</div><h3>Verified accounts</h3>
+      <p class="small muted mb-0">Every member confirms an email address. Members can then request
+      verification, which an administrator reviews by hand. Verification status is printed on every
+      ride card, request, and profile — you always know who you're dealing with.</p></div>
+
+    <div class="card"><div class="feature-icon">🚘</div><h3>Driver checks</h3>
+      <p class="small muted mb-0">Drivers must be verified to appear in public search. Their rating,
+      completed-ride count, and verification badge travel with every ride they post. CarBuddy does
+      not employ, license, insure, or background-check drivers — it is a coordination tool, not a
+      taxi company, and we say so plainly.</p></div>
+
+    <div class="card"><div class="feature-icon">👪</div><h3>Parent / guardian approval</h3>
+      <p class="small muted mb-0">Riders under 18 cannot join or post <em>any</em> ride until an adult
+      is linked to their account. After that, every single request pauses for that adult's decision —
+      the driver's Accept button is disabled by the database itself until approval lands. A young rider
+      cannot unlink their guardian.</p></div>
+
+    <div class="card"><div class="feature-icon">👥</div><h3>Trusted groups</h3>
+      <p class="small muted mb-0">Restrict a ride to a real community: a school, a team, a
+      neighbourhood. Group members are approved by a group admin, and a group-only ride is invisible
+      to everyone outside it.</p></div>
+
+    <div class="card"><div class="feature-icon">📍</div><h3>Public meetup points</h3>
+      <p class="small muted mb-0">We ask for a public, well-lit place instead of a home address, and
+      the meetup details are released only after a seat is confirmed. Private addresses never appear
+      on a public listing.</p></div>
+
+    <div class="card"><div class="feature-icon">📞</div><h3>Contact details on a need-to-know basis</h3>
+      <p class="small muted mb-0">Phone numbers are held in a separate, locked-down table. They are
+      released only to people confirmed on the same ride and to a linked guardian — never on a profile
+      or a search result.</p></div>
+
+    <div class="card"><div class="feature-icon">📤</div><h3>Share your ride</h3>
+      <p class="small muted mb-0">Every ride has a shareable link. Send it to a parent or a friend so
+      somebody who isn't travelling knows the route, the time, and who is driving.</p></div>
+
+    <div class="card"><div class="feature-icon">⭐</div><h3>Ratings that can't be gamed</h3>
+      <p class="small muted mb-0">Only people who actually shared a ride that was marked completed can
+      rate each other, and only once per ride. The database enforces both rules, so a rating average
+      cannot be inflated or brigaded.</p></div>
+
+    <div class="card"><div class="feature-icon">🚫</div><h3>Report and block</h3>
+      <p class="small muted mb-0">Block someone and you vanish from each other's search results
+      entirely — neither of you can see or join the other's rides. Reports go to a moderation queue
+      that administrators work through.</p></div>
+  </div>
+
+  <!-- ================================================== emergency -->
+  <section class="card card-pad-lg mb-4" id="emergency">
+    <h2 style="font-size:1.4rem">If something goes wrong</h2>
+    <div class="grid grid-2 mt-2">
+      <div>
+        <h3>Right now, during a ride</h3>
+        <ul class="small muted">
+          <li>If anyone is in immediate danger, contact your local emergency services first. CarBuddy
+            is not a monitoring service and cannot dispatch help.</li>
+          <li>Ask to be let out somewhere public — a shop, a petrol station, a school.</li>
+          <li>Call the person you shared your ride link with.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Afterwards</h3>
+        <ul class="small muted">
+          <li>Report the member from their profile or the ride page. Include dates and details.</li>
+          <li>Block them so neither of you appears to the other again.</li>
+          <li>If a minor was involved, tell their linked guardian — they can see the ride record.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="row mt-2">
+      <a class="btn btn-primary" href="find-ride.html">Go to a ride to report it</a>
+      <a class="btn btn-secondary" href="profile.html">Manage your block list</a>
+    </div>
+  </section>
+
+  <!-- ================================================== rules -->
+  <section class="card card-pad-lg mb-4" id="rules">
+    <h2 style="font-size:1.4rem">Community rules</h2>
+    <p class="muted small">These apply to everyone. Breaking them gets an account suspended.</p>
+    <div class="grid grid-2">
+      <div>
+        <h3 class="mt-2">Drivers</h3>
+        <ul class="small muted">
+          <li>Only post trips you were genuinely taking anyway. This is not a job.</li>
+          <li>Offer only seats that exist, with a working seatbelt each.</li>
+          <li>Hold a valid licence and insurance for the vehicle you're driving.</li>
+          <li>Never drive under the influence of anything, ever.</li>
+          <li>Keep any contribution to a fair share of fuel. Cash in person only.</li>
+          <li>Never take a rider anywhere other than the destination you posted.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="mt-2">Riders</h3>
+        <ul class="small muted">
+          <li>Be honest about your age. It changes what protections apply to you.</li>
+          <li>Turn up on time at the agreed public meetup point.</li>
+          <li>Cancel early if plans change — someone else may want the seat.</li>
+          <li>Pay any agreed contribution in person, in full.</li>
+          <li>Treat the car and everyone in it with respect.</li>
+        </ul>
+      </div>
+    </div>
+    <h3 class="mt-3">Everyone</h3>
+    <ul class="small muted mb-0">
+      <li>No harassment, discrimination, threats, or sexual content of any kind.</li>
+      <li>No commercial use — no advertising, no soliciting, no reselling seats.</li>
+      <li>No sharing another member's phone number, photo, or meetup details outside the ride.</li>
+      <li>No fake profiles, borrowed accounts, or pretending to be someone else.</li>
+      <li>Adults must not attempt to arrange private contact with a minor outside the platform.</li>
+    </ul>
+  </section>
+
+  <!-- ================================================== for parents -->
+  <section class="card card-pad-lg mb-4">
+    <h2 style="font-size:1.4rem">For parents and guardians</h2>
+    <p class="muted small">
+      If your child has a CarBuddy account, link to it. Until you do, they cannot join or post
+      anything — that is enforced by the database, not by a hidden button.
+    </p>
+    <div class="grid grid-3">
+      <div><span class="step-num">1</span><p class="small muted mt-2 mb-0">Your child opens the
+        Parent / Guardian page and generates a linking code.</p></div>
+      <div><span class="step-num">2</span><p class="small muted mt-2 mb-0">You create your own account,
+        open the same page, and enter their code.</p></div>
+      <div><span class="step-num">3</span><p class="small muted mt-2 mb-0">Every ride request they send
+        now waits for your approval, with the driver's name, rating, verification, route, time, and
+        contribution shown before you decide.</p></div>
+    </div>
+    <a class="btn btn-primary mt-3" href="guardian.html">Open the Parent / Guardian dashboard</a>
+  </section>
+
+  <!-- ================================================== report form -->
+  <section class="card card-pad-lg" id="report">
+    <h2 style="font-size:1.4rem">Report a problem</h2>
+    <p class="muted small">Reports go to our moderation queue. For reports about a specific person or
+    ride, use the Report button on their profile or the ride page so we get the context automatically.</p>
+    <div id="reportArea"><div class="skeleton" style="height:160px"></div></div>
+  </section>
+</main>
+
+<div id="footer"></div>
+<script type="module" src="assets/js/pages/safety.js"></script>
+</body>
+</html>

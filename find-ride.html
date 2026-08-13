@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Find a Ride · CarBuddy</title>
+<meta name="description" content="Search rides going your way and request a seat.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+<div id="nav"></div>
+
+<main class="wrap section-tight">
+  <a class="back-link" href="dashboard.html"><span aria-hidden="true">←</span> Back to Dashboard</a>
+  <div class="row-between mb-3">
+    <div>
+      <h1 style="font-size:1.9rem;margin-bottom:.2rem">Find a Ride</h1>
+      <p class="muted small mb-0">Search trips people are already taking. You request a seat — the driver decides.</p>
+    </div>
+    <a class="btn btn-secondary" href="post-ride.html">Post a Ride instead</a>
+  </div>
+
+  <form class="card mb-3" id="searchForm">
+    <div class="form-grid form-grid-2">
+      <label class="field"><span>Starting from</span>
+        <input type="search" id="origin" placeholder="Frisco, TX" autocomplete="off"></label>
+      <label class="field"><span>Going to</span>
+        <input type="search" id="destination" placeholder="Plano, TX" autocomplete="off"></label>
+    </div>
+
+    <!-- distance -->
+    <fieldset style="border:0;padding:0;margin:0 0 1rem">
+      <legend class="label" style="padding:0">Distance from your pickup point</legend>
+      <div class="row" style="gap:.5rem;align-items:center">
+        <button type="button" class="btn btn-secondary btn-sm" id="useLocationBtn">
+          <span aria-hidden="true">📍</span> Use my location</button>
+        <button type="button" class="btn btn-ghost btn-sm hidden" id="useHomeBtn"></button>
+        <button type="button" class="btn btn-ghost btn-sm hidden" id="clearLocationBtn">Clear</button>
+      </div>
+      <p class="hint" id="locationStatus">Set a location to filter rides by how far their
+        pickup point is from you.</p>
+      <div id="radiusWrap" class="hidden">
+        <div class="row" style="gap:.75rem;align-items:center">
+          <input type="range" id="radius" min="1" max="100" step="1" value="10"
+                 style="flex:1;min-width:140px;accent-color:var(--brand-600)">
+          <output for="radius" id="radiusOut" class="badge badge-brand"
+                  style="min-width:88px;justify-content:center">Within 10 mi</output>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="form-grid form-grid-2">
+      <label class="field"><span>Date</span><input type="date" id="date"></label>
+      <div class="form-grid form-grid-2">
+        <label class="field"><span>Earliest time</span><input type="time" id="timeFrom"></label>
+        <label class="field"><span>Latest time</span><input type="time" id="timeTo"></label>
+      </div>
+    </div>
+    <div class="form-grid form-grid-2">
+      <label class="field"><span>Seats I need</span>
+        <select id="minSeats">
+          <option value="1">1 seat</option><option value="2">2 seats</option>
+          <option value="3">3 seats</option><option value="4">4 seats</option>
+        </select></label>
+      <label class="field"><span>Max contribution</span>
+        <select id="maxContribution">
+          <option value="">Any amount</option><option value="0">Free rides only</option>
+          <option value="5">Up to $5</option><option value="10">Up to $10</option>
+          <option value="20">Up to $20</option><option value="50">Up to $50</option>
+        </select></label>
+    </div>
+    <div class="row-between">
+      <label class="check" style="margin:0"><input type="checkbox" id="hideFull" checked>
+        <span>Hide rides that are already full</span></label>
+      <div class="row">
+        <button type="button" class="btn btn-ghost btn-sm" id="clearBtn">Clear all</button>
+        <button type="submit" class="btn btn-primary" id="searchBtn">Search rides</button>
+      </div>
+    </div>
+  </form>
+
+  <div class="row-between mb-2">
+    <p class="small muted mb-0" id="resultCount"></p>
+    <label class="small muted row" style="gap:.4rem;margin:0">Sort
+      <select id="sort" style="width:auto;padding:.3rem .5rem;font-size:.85rem">
+        <option value="soonest">Departing soonest</option>
+        <option value="distance">Nearest pickup</option>
+        <option value="seats">Most seats free</option>
+        <option value="cheapest">Lowest contribution</option>
+        <option value="rating">Highest driver rating</option>
+      </select></label>
+  </div>
+
+  <div id="results"></div>
+</main>
+
+<div id="footer"></div>
+<script type="module" src="assets/js/pages/find-ride.js"></script>
+</body>
+</html>

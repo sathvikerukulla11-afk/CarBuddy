@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Post a Ride · CarBuddy</title>
+<meta name="description" content="Offer the empty seats on a trip you're already taking.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+<div id="nav"></div>
+
+<main class="wrap wrap-mid section-tight">
+  <a class="back-link" href="dashboard.html"><span aria-hidden="true">←</span> Back to Dashboard</a>
+  <h1 style="font-size:1.9rem;margin-bottom:.2rem">Post a Ride</h1>
+  <p class="muted small">Offering seats on a trip you're already taking. You approve every rider individually.</p>
+
+  <div id="gate"></div>
+
+  <form id="rideForm" class="stack" hidden>
+    <section class="card">
+      <div class="card-head"><h3>Route</h3></div>
+      <div class="form-grid form-grid-2">
+        <label class="field"><span>Starting location *</span>
+          <input type="text" id="origin" required maxlength="120" placeholder="Frisco, TX">
+          <span class="hint">A landmark, area, or public place — not your street address.</span></label>
+        <label class="field"><span>Destination *</span>
+          <input type="text" id="destination" required maxlength="120" placeholder="Plano, TX"></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h3>When</h3></div>
+      <div class="form-grid form-grid-2">
+        <label class="field"><span>Date *</span><input type="date" id="date" required></label>
+        <label class="field"><span>Departure time *</span><input type="time" id="time" required></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h3>Seats &amp; contribution</h3></div>
+      <div class="form-grid form-grid-2">
+        <label class="field"><span>Seats you're offering *</span>
+          <select id="seats" required>
+            <option value="1">1 seat</option><option value="2">2 seats</option>
+            <option value="3" selected>3 seats</option><option value="4">4 seats</option>
+            <option value="5">5 seats</option><option value="6">6 seats</option>
+            <option value="7">7 seats</option><option value="8">8 seats</option>
+          </select>
+          <span class="hint">Only count seats that are genuinely free with a seatbelt each.</span></label>
+        <label class="field"><span>Optional contribution</span>
+          <input type="number" id="contribution" min="0" max="200" step="0.5" value="0" placeholder="0">
+          <span class="hint" id="contribHint">Leave at 0 for no contribution.</span></label>
+      </div>
+      <div class="safety-note">
+        <strong>CarBuddy never processes payments.</strong> Whatever you enter is shown to riders as
+        <em>"paid directly to the driver"</em> and is settled between the two of you in person.
+        Keep it to a fair share of fuel — this is not a fare.
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h3>Who can join</h3></div>
+      <div class="radio-cards" id="visibilityCards">
+        <label class="radio-card"><input type="radio" name="visibility" value="verified" checked>
+          <span><strong>Anyone verified</strong>
+          <span class="rc-desc">Listed publicly. Any verified member can request a seat — you still approve each one.</span></span></label>
+        <label class="radio-card"><input type="radio" name="visibility" value="group">
+          <span><strong>People in my trusted groups</strong>
+          <span class="rc-desc">Only members of the group you choose can see or request this ride.</span></span></label>
+        <label class="radio-card"><input type="radio" name="visibility" value="approval">
+          <span><strong>People I approve (unlisted)</strong>
+          <span class="rc-desc">Hidden from search. Share the ride link directly with the people you want.</span></span></label>
+      </div>
+      <label class="field mt-2" id="groupField" hidden><span>Trusted group *</span>
+        <select id="groupId"></select>
+        <span class="hint">Only groups where your membership is active are listed.
+        <a href="groups.html">Manage groups</a></span></label>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h3>Meetup &amp; notes</h3></div>
+      <label class="field"><span>Meetup point <span class="muted">(shared only with confirmed riders)</span></span>
+        <input type="text" id="meetupPlace" maxlength="160" placeholder="Front parking lot, Frisco Public Library">
+        <span class="hint">Pick somewhere public and well lit. Never a private home address.</span></label>
+      <label class="field"><span>Additional notes</span>
+        <textarea id="notes" maxlength="1000" placeholder="Leaving right after practice, small trunk so one bag each, no food in the car."></textarea></label>
+    </section>
+
+    <div id="msg"></div>
+    <div class="row" style="justify-content:flex-end">
+      <a class="btn btn-secondary" href="my-rides.html">Cancel</a>
+      <button class="btn btn-primary btn-lg" id="submitBtn" type="submit">Post this ride</button>
+    </div>
+  </form>
+</main>
+
+<div id="footer"></div>
+<script type="module" src="assets/js/pages/post-ride.js"></script>
+</body>
+</html>

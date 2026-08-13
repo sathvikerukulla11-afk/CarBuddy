@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign up · CarBuddy</title>
+<meta name="description" content="Create a CarBuddy account and join your community's carpool.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+<div id="nav"></div>
+<main class="wrap wrap-narrow section">
+  <div class="card card-pad-lg">
+    <h1 style="font-size:1.7rem">Create your account</h1>
+    <p class="muted small">Takes a minute — no confirmation email, you are signed in straight away.
+    You can add a photo and bio afterwards.</p>
+    <div id="msg"></div>
+    <form id="signupForm" novalidate>
+      <label class="field"><span>Full name</span>
+        <input type="text" id="fullName" autocomplete="name" required placeholder="Jordan Rivera"></label>
+
+      <label class="field"><span>Email</span>
+        <input type="email" id="email" autocomplete="email" required placeholder="you@example.com"></label>
+
+      <label class="field"><span>Phone number <span class="muted">(private)</span></span>
+        <input type="tel" id="phone" autocomplete="tel" placeholder="(555) 123-4567">
+        <span class="hint">Only shared with people once a seat is confirmed. Never shown on a listing.</span></label>
+
+      <div class="field">
+        <span class="label">Your age</span>
+        <div class="radio-cards" id="ageCards">
+          <label class="radio-card"><input type="radio" name="age" value="adult" checked>
+            <span><strong>18 or older</strong><span class="rc-desc">You can drive and ride without guardian approval.</span></span></label>
+          <label class="radio-card"><input type="radio" name="age" value="age_16_17">
+            <span><strong>16 – 17</strong><span class="rc-desc">A parent or guardian must be linked and must approve each ride.</span></span></label>
+          <label class="radio-card"><input type="radio" name="age" value="under_16">
+            <span><strong>Under 16</strong><span class="rc-desc">A parent or guardian must be linked and must approve each ride.</span></span></label>
+        </div>
+        <span class="hint">Be accurate. You cannot raise this to adult yourself later — only an administrator can.</span>
+      </div>
+
+      <div class="safety-note mb-2" id="minorNote" hidden>
+        <strong>One extra step for under-18 riders.</strong> After signing up you'll get a
+        code to give to a parent or guardian. Until an adult links their account and
+        approves a ride, you cannot join or post one.
+      </div>
+
+      <label class="field"><span>Password</span>
+        <input type="password" id="password" autocomplete="new-password" required minlength="8" placeholder="At least 8 characters"></label>
+
+      <label class="check"><input type="checkbox" id="agree" required>
+        <span>I agree to the <a href="safety.html#rules">community rules</a>, and I understand that
+        CarBuddy does not process payments and does not employ or vet drivers as a taxi service would.</span></label>
+
+      <button class="btn btn-primary btn-block btn-lg mt-2" id="submitBtn" type="submit">Create account</button>
+    </form>
+    <p class="small muted mt-3 mb-0 center">Already have an account? <a href="login.html">Log in</a></p>
+  </div>
+</main>
+<div id="footer"></div>
+<script type="module" src="assets/js/pages/signup.js"></script>
+</body>
+</html>

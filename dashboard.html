@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard · CarBuddy</title>
+<meta name="description" content="Your upcoming rides, open seats, and join requests at a glance.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+<div id="nav"></div>
+<main class="wrap section-tight">
+  <div id="welcome" class="mb-3">
+    <h1 style="font-size:1.9rem;margin-bottom:.2rem">Dashboard</h1>
+    <p class="muted small mb-0">Loading your dashboard…</p>
+  </div>
+
+  <section class="mb-3" aria-label="Quick actions">
+    <div class="grid grid-3">
+      <a class="card card-hover quick-action" href="find-ride.html">
+        <span class="feature-icon" aria-hidden="true">🔍</span>
+        <strong>Find a Ride</strong>
+        <span class="small muted">Search trips going your way</span>
+      </a>
+      <a class="card card-hover quick-action" href="post-ride.html">
+        <span class="feature-icon" aria-hidden="true">🚗</span>
+        <strong>Post a Ride</strong>
+        <span class="small muted">Offer your empty seats</span>
+      </a>
+      <a class="card card-hover quick-action" href="my-rides.html">
+        <span class="feature-icon" aria-hidden="true">📋</span>
+        <strong>My Rides</strong>
+        <span class="small muted">Everything you're driving or joining</span>
+      </a>
+    </div>
+  </section>
+
+  <div id="stats" class="grid grid-4 mb-3"></div>
+  <div id="panels"><div class="skeleton" style="height:220px"></div></div>
+</main>
+<div id="footer"></div>
+<script type="module" src="assets/js/pages/dashboard.js"></script>
+</body>
+</html>

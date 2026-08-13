@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Rides · CarBuddy</title>
+<meta name="description" content="Rides you're driving, rides you've joined, and pending requests.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+<link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+<div id="nav"></div>
+<main class="wrap section-tight">
+  <a class="back-link" href="dashboard.html"><span aria-hidden="true">←</span> Back to Dashboard</a>
+  <div class="row-between mb-3">
+    <div><h1 style="font-size:1.9rem;margin-bottom:.2rem">My Rides</h1>
+      <p class="muted small mb-0">Everything you're driving or riding, plus requests waiting on you.</p></div>
+    <div class="row"><a class="btn btn-secondary" href="find-ride.html">Find a Ride</a>
+      <a class="btn btn-primary" href="post-ride.html">Post a Ride</a></div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="driving" role="tab">Rides I'm Driving</button>
+    <button class="tab" data-tab="joining" role="tab">Rides I'm Joining</button>
+    <button class="tab" data-tab="requests" role="tab">Requests to me <span class="badge" id="reqCount">0</span></button>
+    <button class="tab" data-tab="sent" role="tab">My requests</button>
+  </div>
+
+  <div id="panel"><div class="skeleton" style="height:220px"></div></div>
+</main>
+<div id="footer"></div>
+<script type="module" src="assets/js/pages/my-rides.js"></script>
+</body>
+</html>
