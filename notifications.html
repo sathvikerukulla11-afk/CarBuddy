@@ -3,17 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0B2136">
 <title>Notifications · CarBuddy</title>
 <meta name="description" content="Ride requests, approvals, and updates.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div id="nav"></div>
 <main class="wrap wrap-mid section-tight">
   <a class="back-link" href="dashboard.html"><span aria-hidden="true">←</span> Back to Dashboard</a>
-  <div class="row-between mb-3">
-    <h1 style="font-size:1.9rem;margin:0">Notifications</h1>
+  <div class="row-between mb-4">
+    <h1 style="font-size:clamp(1.7rem,3.4vw,2.2rem);margin:0">Notifications</h1>
     <button class="btn btn-secondary btn-sm" id="markAll">Mark all read</button>
   </div>
   <div id="list"><div class="skeleton" style="height:200px"></div></div>

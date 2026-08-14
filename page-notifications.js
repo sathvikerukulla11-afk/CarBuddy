@@ -12,6 +12,7 @@ const ICONS = {
   guardian_approval_needed: '👪', guardian_approved: '👍', guardian_denied: '🚫',
   guardian_linked: '🔗', ride_cancelled: '⚠️', ride_completed: '🏁', ride_confirmed: '✅',
   rider_left: '↩️', removed_from_ride: '⚠️', new_rating: '⭐',
+  ride_departed: '🕓', request_expired: '🕓',
   verification_update: '✓', group_join_request: '👥', group_approved: '👥', ride_removed: '⚠️',
 };
 

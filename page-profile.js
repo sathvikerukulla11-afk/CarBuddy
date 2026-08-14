@@ -47,25 +47,34 @@ async function renderMine() {
       <button class="btn btn-secondary btn-sm" id="signOut">Sign out</button>
     </div>
 
-    <section class="card mb-3">
-      <div class="row" style="gap:1.1rem;align-items:flex-start">
+    <section class="card card-pad-lg mb-3">
+      <div class="profile-header">
         <div class="stack-sm" style="align-items:center">
-          <span id="avatarSlot">${avatarEl(p, 'avatar-lg')}</span>
+          <span id="avatarSlot">${avatarEl(p, 'avatar-xl')}</span>
           <label class="btn btn-secondary btn-sm" style="cursor:pointer">Change photo
             <input type="file" id="avatarInput" accept="image/*" hidden></label>
         </div>
-        <div style="flex:1;min-width:0">
+        <div style="flex:1;min-width:220px">
           <div class="row" style="gap:.5rem">
-            <strong style="font-size:1.15rem">${esc(p.full_name)}</strong>
+            <span class="person-name" style="font-size:1.4rem">${esc(p.full_name)}</span>
             ${verifiedBadge(p.verification_status)}
             ${p.is_minor ? '<span class="badge badge-info">Under 18</span>' : ''}
             ${p.is_admin ? '<span class="badge badge-brand">Admin</span>' : ''}
           </div>
-          <div class="small mt-1">
-            ${p.rating_count
-              ? `<span class="stars">${starString(p.rating_avg)}</span> <span class="muted">${Number(p.rating_avg).toFixed(1)} · ${p.rating_count} rating${p.rating_count === 1 ? '' : 's'}</span>`
-              : '<span class="muted">No ratings yet</span>'}
-            <span class="muted"> · ${p.rides_completed} completed ride${p.rides_completed === 1 ? '' : 's'}</span>
+          ${p.home_area ? `<div class="small muted mt-1">${esc(p.home_area)}</div>` : ''}
+          <div class="profile-stats">
+            <div class="profile-stat">
+              <div class="v">${p.rating_count ? Number(p.rating_avg).toFixed(1) : '—'}</div>
+              <div class="k">${p.rating_count ? `from ${p.rating_count} rating${p.rating_count === 1 ? '' : 's'}` : 'no ratings yet'}</div>
+            </div>
+            <div class="profile-stat">
+              <div class="v">${p.rides_completed}</div>
+              <div class="k">completed ride${p.rides_completed === 1 ? '' : 's'}</div>
+            </div>
+            <div class="profile-stat">
+              <div class="v">${new Date(p.created_at).getFullYear()}</div>
+              <div class="k">member since</div>
+            </div>
           </div>
           ${p.verification_status !== 'verified' ? `
             <div class="mt-2">
@@ -124,14 +133,14 @@ async function renderMine() {
     </section>
 
     <section class="card mb-3">
-      <div class="card-head"><h3>Ratings you've received</h3><span class="badge">${ratings.length}</span></div>
+      <div class="card-head"><h3>Reviews</h3><span class="badge">${ratings.length}</span></div>
       ${ratings.length ? ratings.map(ratingRow).join('') : '<p class="small muted mb-0">No ratings yet — they appear after a completed ride.</p>'}
     </section>
 
     <section class="card">
       <div class="card-head"><h3>Blocked members</h3><span class="badge">${blocks.length}</span></div>
       ${blocks.length ? blocks.map((b) => `
-        <div class="row-between" style="padding:.5rem 0;border-bottom:1px solid var(--line)">
+        <div class="row-between" class="list-row">
           <div class="row" style="gap:.5rem">${avatarEl(b.profile, 'avatar-sm')}
             <span class="small">${esc(b.profile?.full_name || 'Member')}</span></div>
           <button class="btn btn-ghost btn-sm" data-unblock="${esc(b.blocked_id)}">Unblock</button>
@@ -212,35 +221,43 @@ async function renderOther(id) {
   page.innerHTML = `
     ${backLink('find-ride.html', 'Back to Find a Ride')}
     <section class="card card-pad-lg mt-2 mb-3">
-      <div class="row" style="gap:1.1rem;align-items:flex-start">
-        ${avatarEl(p, 'avatar-lg')}
-        <div style="flex:1;min-width:0">
+      <div class="profile-header">
+        ${avatarEl(p, 'avatar-xl')}
+        <div style="flex:1;min-width:220px">
           <div class="row" style="gap:.5rem">
-            <strong style="font-size:1.2rem">${esc(p.full_name)}</strong>
+            <span class="person-name" style="font-size:1.4rem">${esc(p.full_name)}</span>
             ${verifiedBadge(p.verification_status)}
             ${p.is_suspended ? '<span class="badge badge-danger">Suspended</span>' : ''}
           </div>
-          <div class="small mt-1">
-            ${p.rating_count
-              ? `<span class="stars">${starString(p.rating_avg)}</span> <span class="muted">${Number(p.rating_avg).toFixed(1)} · ${p.rating_count} rating${p.rating_count === 1 ? '' : 's'}</span>`
-              : '<span class="muted">No ratings yet</span>'}
-            <span class="muted"> · ${p.rides_completed} completed ride${p.rides_completed === 1 ? '' : 's'}</span>
+          ${p.home_area ? `<div class="small muted mt-1">${esc(p.home_area)}</div>` : ''}
+          <div class="profile-stats">
+            <div class="profile-stat">
+              <div class="v">${p.rating_count ? Number(p.rating_avg).toFixed(1) : '—'}</div>
+              <div class="k">${p.rating_count ? `from ${p.rating_count} rating${p.rating_count === 1 ? '' : 's'}` : 'no ratings yet'}</div>
+            </div>
+            <div class="profile-stat">
+              <div class="v">${p.rides_completed}</div>
+              <div class="k">completed ride${p.rides_completed === 1 ? '' : 's'}</div>
+            </div>
+            <div class="profile-stat">
+              <div class="v">${new Date(p.created_at).getFullYear()}</div>
+              <div class="k">member since</div>
+            </div>
           </div>
-          ${p.home_area ? `<div class="tiny muted mt-1">📍 ${esc(p.home_area)}</div>` : ''}
-          <div class="tiny muted">Member since ${new Date(p.created_at).toLocaleDateString()}</div>
         </div>
       </div>
-      ${p.bio ? `<p class="mt-3 mb-0" style="white-space:pre-wrap">${esc(p.bio)}</p>` : ''}
+      ${p.bio ? `<div class="mt-3"><div class="label">About</div>
+        <p class="mb-0" style="white-space:pre-wrap;color:var(--ink-2)">${esc(p.bio)}</p></div>` : ''}
       <div class="row mt-3">
         <button class="btn btn-secondary btn-sm" id="reportBtn">Report</button>
         <button class="btn btn-secondary btn-sm" id="blockBtn">Block</button>
       </div>
-      <p class="tiny muted mt-2 mb-0">Contact details are never shown on a profile — they are shared
+      <p class="tiny muted mt-2 mb-0">Contact details are never shown on a profile. They are shared
       only once you're both confirmed on the same ride.</p>
     </section>
 
     <section class="card">
-      <div class="card-head"><h3>Ratings</h3><span class="badge">${ratings.length}</span></div>
+      <div class="card-head"><h3>Reviews</h3><span class="badge">${ratings.length}</span></div>
       ${ratings.length ? ratings.map(ratingRow).join('') : '<p class="small muted mb-0">No ratings yet.</p>'}
     </section>`;
 
@@ -271,7 +288,7 @@ async function renderOther(id) {
 }
 
 function ratingRow(r) {
-  return `<div style="padding:.6rem 0;border-bottom:1px solid var(--line)">
+  return `<div class="list-row">
     <div class="row-between">
       <div class="row" style="gap:.5rem">${avatarEl(r.rater, 'avatar-sm')}
         <span class="small strong">${esc(r.rater?.full_name || 'Member')}</span></div>

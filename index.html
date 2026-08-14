@@ -3,9 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0B2136">
 <title>CarBuddy — Share the Ride. Get There Together.</title>
 <meta name="description" content="Community carpooling for people already heading the same way. Verified members, trusted groups, and parent-approved rides for younger riders.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -15,67 +19,88 @@
 <section class="hero">
   <div class="wrap hero-grid">
     <div>
-      <div class="eyebrow">Trusted community carpooling</div>
-      <h1>Share the Ride. Get There Together.</h1>
-      <p class="hero-lead">
-        Someone in your school, neighbourhood, or team is already driving where
-        you need to go. CarBuddy helps you find them, ask for a seat, and agree
-        on the details — with verification, trusted groups, and guardian approval
-        built in from the start.
+      <span class="eyebrow">Community carpooling</span>
+      <h1 class="display">Get there together.</h1>
+      <p class="lede">
+        Share the ride with people you can trust — neighbours, classmates and
+        teammates who are already heading your way.
       </p>
       <div class="hero-cta">
         <a class="btn btn-primary btn-lg" href="find-ride.html">Find a Ride</a>
         <a class="btn btn-secondary btn-lg" href="post-ride.html">Post a Ride</a>
       </div>
       <div class="hero-trust">
-        <span>✓ Verified accounts</span>
-        <span>👪 Guardian approval for under-18s</span>
-        <span>👥 Trusted groups</span>
-        <span>💵 No payments processed</span>
+        <span data-ico="check">Verified profiles</span>
+        <span data-ico="check">Parent approval for under-18s</span>
+        <span data-ico="check">No payments handled</span>
       </div>
     </div>
 
-    <div class="hero-panel" aria-hidden="true">
-      <div class="card ride-card" style="border-color:var(--line)">
-        <div class="route">
-          <div class="route-line"><span>Frisco</span><span class="route-arrow">→</span><span>Plano</span></div>
-          <div class="route-when">Today • 5:30 PM</div>
+    <!-- a single journey, shown plainly -->
+    <div class="journey" aria-hidden="true">
+      <div class="journey-head">
+        <span>Today</span>
+        <span>5:30 PM</span>
+      </div>
+      <div class="journey-route">
+        <div class="journey-rail">
+          <span class="journey-dot"></span>
+          <span class="journey-track"><span class="journey-car" data-ico="car"></span></span>
+          <span class="journey-dot journey-dot-end"></span>
         </div>
-        <div class="ride-meta">
-          <span class="badge badge-brand">📍 2.4 mi away</span>
-          <span class="seats seats-open">🟢 3 seats available</span>
-          <span class="badge">$5 · in person</span>
+        <div>
+          <div class="journey-place">Frisco</div>
+          <div class="journey-sub">Meet at the library car park</div>
+          <div style="height:44px"></div>
+          <div class="journey-place">Plano</div>
+          <div class="journey-sub">Arriving about 6:05 PM</div>
         </div>
-        <div class="ride-foot">
-          <div class="ride-driver">
-            <span class="avatar avatar-sm">JR</span>
-            <div><div class="name">John R.</div>
-            <div class="tiny"><span class="stars">★★★★★</span> <span class="muted">4.9 (23)</span></div></div>
+      </div>
+      <div class="journey-foot">
+        <div class="row" style="gap:12px">
+          <span class="avatar avatar-sm">JR</span>
+          <div>
+            <div class="strong" style="font-size:.9rem">John R.</div>
+            <div class="tiny muted"><span class="stars">★</span> <span class="rating-num">4.9</span> · Verified</div>
           </div>
-          <span class="spacer"></span>
-          <span class="btn btn-primary btn-sm">Request to Join</span>
         </div>
+        <span class="seats seats-open">3 seats available</span>
       </div>
-      <div class="card ride-card mt-2" style="border-color:var(--line)">
-        <div class="route">
-          <div class="route-line"><span>Plano East HS</span><span class="route-arrow">→</span><span>Legacy West</span></div>
-          <div class="route-when">Tomorrow • 8:15 AM</div>
-        </div>
-        <div class="ride-meta">
-          <span class="badge badge-brand">📍 5.1 mi away</span>
-          <span class="seats seats-last">🟡 1 seat available</span>
-          <span class="badge">No contribution</span>
-        </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================= trust -->
+<section class="section section-alt" id="trust">
+  <div class="wrap">
+    <div class="mb-4" style="max-width:46ch">
+      <span class="eyebrow">Why people feel safe here</span>
+      <h2>Built around trust.</h2>
+      <p class="muted mb-0">
+        You are not booking a stranger. You are joining someone already making
+        the journey — usually someone your community already knows.
+      </p>
+    </div>
+    <div class="grid grid-4">
+      <div class="card trust-card">
+        <span class="trust-icon" data-ico="shield"></span>
+        <h3>Verified profiles</h3>
+        <p class="small muted mb-0">Know who you're riding with before you ask for a seat.</p>
       </div>
-      <div class="card ride-card mt-2" style="border-color:var(--line);opacity:.72">
-        <div class="route">
-          <div class="route-line"><span>Allen</span><span class="route-arrow">→</span><span>DFW Airport</span></div>
-          <div class="route-when">Sat • 6:00 AM</div>
-        </div>
-        <div class="ride-meta">
-          <span class="seats seats-full">🔴 Ride full</span>
-          <span class="badge">$12 · in person</span>
-        </div>
+      <div class="card trust-card">
+        <span class="trust-icon" data-ico="users"></span>
+        <h3>Trusted groups</h3>
+        <p class="small muted mb-0">Connect through communities you already belong to.</p>
+      </div>
+      <div class="card trust-card">
+        <span class="trust-icon" data-ico="family"></span>
+        <h3>Parent controls</h3>
+        <p class="small muted mb-0">Give families real visibility and a say in every ride.</p>
+      </div>
+      <div class="card trust-card">
+        <span class="trust-icon" data-ico="pin"></span>
+        <h3>Safe meetups</h3>
+        <p class="small muted mb-0">Public, well-lit meeting points, shared only once a seat is confirmed.</p>
       </div>
     </div>
   </div>
@@ -84,171 +109,90 @@
 <!-- ======================================================== how it works -->
 <section class="section" id="how">
   <div class="wrap">
-    <div class="center mb-3">
-      <div class="eyebrow">How it works</div>
-      <h2>Four steps, no guesswork</h2>
-      <p class="muted" style="max-width:52ch;margin-inline:auto">
-        CarBuddy is for trips people are already taking. Nobody is dispatched,
-        and nobody drives for money.
-      </p>
+    <div class="mb-4" style="max-width:44ch">
+      <span class="eyebrow">How it works</span>
+      <h2>Four simple steps.</h2>
     </div>
     <div class="grid grid-4">
       <div class="card">
-        <div class="row" style="gap:.6rem;margin-bottom:.7rem"><span class="step-num">1</span><strong>Someone posts a trip</strong></div>
-        <p class="small muted mb-0">A driver already heading somewhere adds their route, date, time, and how many seats are genuinely free.</p>
+        <span class="step-num">1</span>
+        <h3 class="mt-3">Someone shares a trip</h3>
+        <p class="small muted mb-0">A driver already going somewhere adds their route, time, and the seats genuinely free.</p>
       </div>
       <div class="card">
-        <div class="row" style="gap:.6rem;margin-bottom:.7rem"><span class="step-num">2</span><strong>You search nearby</strong></div>
-        <p class="small muted mb-0">Browse every current ride, or filter to pickups within a few miles of you. Tap <em>Request to Join</em> — you never join automatically.</p>
+        <span class="step-num">2</span>
+        <h3 class="mt-3">You find them</h3>
+        <p class="small muted mb-0">Browse rides near you, or filter to pickups within a few miles.</p>
       </div>
       <div class="card">
-        <div class="row" style="gap:.6rem;margin-bottom:.7rem"><span class="step-num">3</span><strong>The driver decides</strong></div>
-        <p class="small muted mb-0">They see your profile, rating, and groups, then accept or decline. Under-18 riders also need guardian approval.</p>
+        <span class="step-num">3</span>
+        <h3 class="mt-3">You request a seat</h3>
+        <p class="small muted mb-0">Your driver reviews your profile and decides. Under-18 riders need a guardian's approval too.</p>
       </div>
       <div class="card">
-        <div class="row" style="gap:.6rem;margin-bottom:.7rem"><span class="step-num">4</span><strong>You meet and travel</strong></div>
-        <p class="small muted mb-0">Once accepted you get the meetup point and contact details, and the seat count drops by one.</p>
+        <span class="step-num">4</span>
+        <h3 class="mt-3">You travel together</h3>
+        <p class="small muted mb-0">Once confirmed you get the meetup point and contact details, and the seat count updates.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- =========================================================== seat maths -->
-<section class="section section-alt" id="seats">
-  <div class="wrap grid grid-2" style="align-items:center;gap:2.5rem">
+<!-- ============================================================== seats -->
+<section class="section section-alt">
+  <div class="wrap grid grid-2" style="align-items:center;gap:64px">
     <div>
-      <div class="eyebrow">Seat availability</div>
-      <h2>The seat count is always the truth</h2>
+      <span class="eyebrow">Seat availability</span>
+      <h2>The seat count is always honest.</h2>
       <p class="muted">
-        Seats are counted by the database, not the page you're looking at. Every
-        accepted rider decrements the count inside a locked transaction, so two
-        people can never take the same last seat — even if they tap at the same
-        instant.
+        Seats are counted by the database, not by the page you're looking at.
+        Every confirmed rider updates the count inside a locked transaction, so
+        two people can never take the same last seat.
       </p>
       <p class="muted mb-0">
-        When a ride reaches zero, the request button disables itself and the
-        server refuses any further joins. There is no state where a ride looks
-        open but isn't.
+        When a ride fills up it says so, and the server stops accepting requests.
+        There is no state where a ride looks open but isn't.
       </p>
     </div>
     <div class="card card-pad-lg">
-      <div class="stack">
-        <div class="row-between"><span class="small muted">Driver offers 4 seats</span><span class="seats seats-open">🟢 4 seats available</span></div>
-        <hr class="divider" style="margin:0">
-        <div class="row-between"><span class="small muted">First rider accepted</span><span class="seats seats-open">🟢 3 seats available</span></div>
-        <hr class="divider" style="margin:0">
-        <div class="row-between"><span class="small muted">Second rider accepted</span><span class="seats seats-open">🟢 2 seats available</span></div>
-        <hr class="divider" style="margin:0">
-        <div class="row-between"><span class="small muted">Third rider accepted</span><span class="seats seats-last">🟡 1 seat available</span></div>
-        <hr class="divider" style="margin:0">
-        <div class="row-between"><span class="small muted">Fourth rider accepted</span><span class="seats seats-full">🔴 Ride full</span></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================================== safety -->
-<section class="section" id="safety">
-  <div class="wrap">
-    <div class="center mb-3">
-      <div class="eyebrow">Safety</div>
-      <h2>Built for people who already have something in common</h2>
-      <p class="muted" style="max-width:58ch;margin-inline:auto">
-        CarBuddy is not a service for putting children in cars with strangers.
-        It is a way for a community that already knows each other to coordinate
-        trips they're taking anyway — with adult oversight where it matters.
-      </p>
-    </div>
-    <div class="grid grid-3">
-      <div class="card"><div class="feature-icon">✓</div><h3>Verified accounts</h3>
-        <p class="small muted mb-0">Members confirm their details and submit them for review. Verification status is visible on every ride card and profile.</p></div>
-      <div class="card"><div class="feature-icon">👪</div><h3>Guardian approval</h3>
-        <p class="small muted mb-0">Riders under 18 must have a linked parent or guardian, and every single request waits for that adult's decision before a driver can accept.</p></div>
-      <div class="card"><div class="feature-icon">👥</div><h3>Trusted groups</h3>
-        <p class="small muted mb-0">Restrict a ride to your school, team, or neighbourhood so only people inside that community can see or request it.</p></div>
-      <div class="card"><div class="feature-icon">📍</div><h3>Public meetup points</h3>
-        <p class="small muted mb-0">We ask for a public, well-lit meeting place instead of a home address, and only share it once a seat is confirmed.</p></div>
-      <div class="card"><div class="feature-icon">⭐</div><h3>Ratings that mean something</h3>
-        <p class="small muted mb-0">Only people who actually shared a completed ride can rate each other, once each. No brigading, no fake reviews.</p></div>
-      <div class="card"><div class="feature-icon">🛡️</div><h3>Report and block</h3>
-        <p class="small muted mb-0">Block someone and you disappear from each other's search results entirely. Reports go to a real moderation queue.</p></div>
-    </div>
-    <div class="center mt-4"><a class="btn btn-secondary" href="safety.html">Visit the Safety Center →</a></div>
-  </div>
-</section>
-
-<!-- ====================================================== trusted groups -->
-<section class="section section-alt">
-  <div class="wrap grid grid-2" style="align-items:center;gap:2.5rem">
-    <div class="card card-pad-lg">
-      <h3 class="mb-2">Example groups</h3>
       <div class="stack-sm">
-        <div class="row-between"><span>🎓 Frisco High School</span><span class="badge">School · 214 members</span></div>
-        <div class="row-between"><span>🤖 Robotics Team 4499</span><span class="badge">Club · 31 members</span></div>
-        <div class="row-between"><span>🏘️ Stonebriar Neighbourhood</span><span class="badge">Neighborhood · 88 members</span></div>
-        <div class="row-between"><span>⚽ North Texas United U16</span><span class="badge">Sports · 42 members</span></div>
+        <div class="list-row"><span class="small muted">Four seats offered</span><span class="seats seats-open">4 seats available</span></div>
+        <div class="list-row"><span class="small muted">First rider confirmed</span><span class="seats seats-open">3 seats available</span></div>
+        <div class="list-row"><span class="small muted">Second rider confirmed</span><span class="seats seats-open">2 seats available</span></div>
+        <div class="list-row"><span class="small muted">Third rider confirmed</span><span class="seats seats-last">1 seat available</span></div>
+        <div class="list-row"><span class="small muted">Fourth rider confirmed</span><span class="seats seats-full">Ride full</span></div>
       </div>
-      <p class="tiny muted mt-3 mb-0">Groups are joined by invite code and approved by a group admin.</p>
-    </div>
-    <div>
-      <div class="eyebrow">Trusted groups</div>
-      <h2>Ride with your actual community</h2>
-      <p class="muted">
-        A trusted group is a real-world community: a school, a neighbourhood, a
-        sports team, a club. Join one with a code, get approved by its admin,
-        and you unlock rides that are only visible to that group.
-      </p>
-      <p class="muted">
-        Drivers choose per ride whether it's open to any verified member, limited
-        to a group, or completely unlisted and shared by link only.
-      </p>
-      <a class="btn btn-secondary" href="groups.html">Explore groups</a>
     </div>
   </div>
 </section>
 
-<!-- ============================================================ why us -->
+<!-- ============================================================ closing -->
 <section class="section">
   <div class="wrap">
-    <div class="center mb-3">
-      <div class="eyebrow">Why CarBuddy</div>
-      <h2>Fewer cars, less hassle, more trust</h2>
-    </div>
-    <div class="grid grid-3">
-      <div class="card"><div class="feature-icon">🤝</div><h3>It's a favour, not a fare</h3>
-        <p class="small muted mb-0">Contributions are optional, capped, and handed over in person. CarBuddy never touches money and takes no cut.</p></div>
-      <div class="card"><div class="feature-icon">🕓</div><h3>Ends the group-chat scramble</h3>
-        <p class="small muted mb-0">No more "anyone going to practice?" threads. Post once and let people ask you.</p></div>
-      <div class="card"><div class="feature-icon">🌱</div><h3>Four seats, four people</h3>
-        <p class="small muted mb-0">Most cars run nearly empty. Filling the seats you already have is the cheapest emissions win there is.</p></div>
-      <div class="card"><div class="feature-icon">📱</div><h3>Works on your phone</h3>
-        <p class="small muted mb-0">Responsive from 320px up, and the same backend powers the mobile app that's coming next.</p></div>
-      <div class="card"><div class="feature-icon">🔔</div><h3>You always know what's happening</h3>
-        <p class="small muted mb-0">Requests, approvals, cancellations, and guardian decisions all arrive as notifications in real time.</p></div>
-      <div class="card"><div class="feature-icon">🔒</div><h3>Private by default</h3>
-        <p class="small muted mb-0">Phone numbers and meetup details are released only after a seat is confirmed — never on a public listing.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- ================================================================ cta -->
-<section class="section section-alt">
-  <div class="wrap center">
-    <h2>Ready to fill some empty seats?</h2>
-    <p class="muted" style="max-width:46ch;margin-inline:auto">
-      Create an account, join your community's group, and post your first trip.
-    </p>
-    <div class="row" style="justify-content:center;margin-top:1.5rem">
-      <a class="btn btn-primary btn-lg" href="signup.html">Create an account</a>
-      <a class="btn btn-secondary btn-lg" href="safety.html">How we keep it safe</a>
+    <div class="card card-pad-lg center" style="padding-block:64px">
+      <h2 style="max-width:20ch;margin-inline:auto">Ready to share the journey?</h2>
+      <p class="muted" style="max-width:44ch;margin-inline:auto">
+        Join your community, find someone already heading your way, or offer the
+        empty seats on a trip you're taking anyway.
+      </p>
+      <div class="row" style="justify-content:center;margin-top:32px">
+        <a class="btn btn-primary btn-lg" href="signup.html">Create an account</a>
+        <a class="btn btn-secondary btn-lg" href="safety.html">How we keep it safe</a>
+      </div>
     </div>
   </div>
 </section>
 
 <div id="footer"></div>
 <script type="module">
-  import { mountChrome } from './ui.js';
-  mountChrome({ active: 'Home' });
+  import { mountChrome, icon, $$ } from './ui.js';
+  await mountChrome({ active: 'Home' });
+  // paint the inline icons declared with data-ico
+  $$('[data-ico]').forEach((el) => {
+    const size = el.classList.contains('trust-icon') ? 19
+               : el.classList.contains('journey-car') ? 14 : 15;
+    el.insertAdjacentHTML('afterbegin', icon(el.dataset.ico, size));
+  });
 </script>
 </body>
 </html>

@@ -2,6 +2,7 @@ import {
   mountChrome, requireAuth, currentProfile, $, $$, esc, qs, modal, confirmDialog,
   toastOk, toastError, seatBadge, verifiedBadge, avatarEl,
   visibilityBadge, emptyState, errorState, loadingState, backLink, withBusy,
+  routeBlock,
 } from './ui.js';
 import {
   getRide, getParticipants, getRideMeetup, setRideMeetup, getRideContacts,
@@ -11,8 +12,10 @@ import {
   requestToJoin, myRequestForRide, requestsForRide, cancelRequest, respondToRequest,
 } from './requests.js';
 import { blockUser, submitReport, rateUser, myRatingsGiven } from './safety.js';
-import { REPORT_CATEGORIES, REQUEST_STATUS_LABELS, GUARDIAN_STATUS_LABELS } from './constants.js';
-import { whenLine, contributionLine, starString, seatState } from './format.js';
+import {
+  REPORT_CATEGORIES, REQUEST_STATUS_LABELS, GUARDIAN_STATUS_LABELS, RIDE_STATUS_LABELS,
+} from './constants.js';
+import { whenLine, contributionLine } from './format.js';
 
 await mountChrome();
 const session = await requireAuth();
@@ -82,80 +85,82 @@ async function load() {
 /* ------------------------------------------------------------------ main -- */
 function renderMain(ride, ctx) {
   const { isDriver, amAccepted, meetup } = ctx;
-  const s = seatState(ride.seats_remaining);
   const d = ride.driver || {};
 
   $('#main').innerHTML = `
-    <section class="card card-pad-lg">
+    <section class="ride-hero">
       <div class="row-between" style="align-items:flex-start">
-        <div class="route">
-          <div class="route-line" style="font-size:1.45rem">
-            <span>${esc(ride.origin_label)}</span><span class="route-arrow">→</span><span>${esc(ride.destination_label)}</span>
-          </div>
-          <div class="route-when" style="font-size:1rem">${esc(whenLine(ride.depart_date, ride.depart_time))}</div>
-        </div>
+        <span class="label-quiet">${esc(whenLine(ride.depart_date, ride.depart_time))}</span>
         ${ride.status !== 'upcoming'
-          ? `<span class="badge badge-warn">${esc(ride.status)}</span>` : ''}
+          ? `<span class="badge badge-warn">${esc(RIDE_STATUS_LABELS[ride.status] || ride.status)}</span>` : ''}
       </div>
-
-      <div class="ride-meta mt-3">
+      <div class="mt-3">${routeBlock(ride, {
+        subFrom: ride.origin_area || '', subTo: ride.destination_area || '' })}</div>
+      <div class="ride-meta">
         ${seatBadge(ride.seats_remaining)}
         ${visibilityBadge(ride)}
-        <span class="badge">${ride.seats_taken} of ${ride.seats_offered} seats taken</span>
       </div>
+    </section>
 
-      <hr class="divider">
-      <dl class="kv">
-        <dt>Contribution</dt><dd>${esc(contributionLine(ride.contribution_amount))}</dd>
-        <dt>Seats offered</dt><dd>${ride.seats_offered}</dd>
-        <dt>Seats remaining</dt><dd>${ride.seats_remaining} <span class="muted" style="font-weight:400">(${esc(s.label)})</span></dd>
-        ${ride.group ? `<dt>Trusted group</dt><dd>${esc(ride.group.name)}</dd>` : ''}
-        ${ride.cancelled_reason ? `<dt>Cancelled because</dt><dd>${esc(ride.cancelled_reason)}</dd>` : ''}
-      </dl>
+    <section class="card">
+      <div class="card-head"><h3>Your driver</h3>
+        ${!isDriver ? '<button class="btn btn-ghost btn-sm" id="reportDriver">Report or block</button>' : ''}</div>
+      <div class="person-row">
+        ${avatarEl(d, 'avatar-lg')}
+        <div style="min-width:0">
+          <div class="person-name">${esc(d.full_name || 'Driver')}</div>
+          <div class="row mt-1" style="gap:8px">
+            ${d.rating_count
+              ? `<span><span class="stars">★</span> <span class="rating-num">${Number(d.rating_avg).toFixed(1)}</span>
+                 <span class="muted small">(${d.rating_count})</span></span>`
+              : '<span class="muted small">New member</span>'}
+            ${verifiedBadge(d.verification_status)}
+          </div>
+          <div class="tiny muted mt-1">${d.rides_completed || 0} completed ride${d.rides_completed === 1 ? '' : 's'}</div>
+          <a class="small" href="profile.html?id=${esc(ride.driver_id)}">View full profile</a>
+        </div>
+      </div>
+    </section>
 
+    <section class="card">
+      <div class="card-head"><h3>Ride details</h3></div>
+      <div class="detail-list">
+        <div class="detail-row"><span class="detail-key">Seats</span>
+          <span class="detail-val">${ride.seats_taken} of ${ride.seats_offered} taken · ${ride.seats_remaining} free</span></div>
+        <div class="detail-row"><span class="detail-key">Contribution</span>
+          <span class="detail-val">${esc(contributionLine(ride.contribution_amount))}</span></div>
+        <div class="detail-row"><span class="detail-key">Who can join</span>
+          <span class="detail-val">${ride.visibility === 'group'
+            ? esc(ride.group?.name || 'A trusted group')
+            : ride.visibility === 'approval' ? 'People the driver invites' : 'Any verified member'}</span></div>
+        ${ride.cancelled_reason ? `<div class="detail-row"><span class="detail-key">Cancelled because</span>
+          <span class="detail-val">${esc(ride.cancelled_reason)}</span></div>` : ''}
+      </div>
       ${Number(ride.contribution_amount) > 0 ? `
         <div class="safety-note mt-3">
-          Payment is arranged between you and the driver in person. CarBuddy does not
-          process, hold, or guarantee any money. Never send a deposit in advance.
+          The contribution is arranged directly between you and your driver, in person.
+          CarBuddy never processes, holds, or guarantees money — never send anything in advance.
         </div>` : ''}
-
-      ${ride.notes ? `<div class="mt-3"><div class="label">Driver's notes</div>
-        <p class="mb-0" style="white-space:pre-wrap">${esc(ride.notes)}</p></div>` : ''}
+      ${ride.notes ? `<div class="mt-3">
+        <div class="label">Notes from your driver</div>
+        <p class="mb-0" style="white-space:pre-wrap;color:var(--ink-2)">${esc(ride.notes)}</p></div>` : ''}
     </section>
 
     ${(isDriver || amAccepted) ? `
     <section class="card">
-      <div class="card-head"><h3>Meetup details</h3>
+      <div class="card-head"><h3>Meetup</h3>
         ${isDriver ? '<button class="btn btn-secondary btn-sm" id="editMeetup">Edit</button>' : ''}</div>
       ${meetup?.meetup_place || meetup?.meetup_notes ? `
-        <dl class="kv">
-          ${meetup.meetup_place ? `<dt>Meet at</dt><dd>${esc(meetup.meetup_place)}</dd>` : ''}
-          ${meetup.meetup_notes ? `<dt>Notes</dt><dd style="white-space:pre-wrap">${esc(meetup.meetup_notes)}</dd>` : ''}
-        </dl>` : `<p class="muted small mb-0">No meetup point set yet${isDriver ? ' — add one so riders know where to go.' : '. Ask the driver to add one.'}</p>`}
-      <div class="safety-note mt-2">Meet somewhere public and well lit. Tell someone you trust
+        <div class="detail-list">
+          ${meetup.meetup_place ? `<div class="detail-row"><span class="detail-key">Meet at</span>
+            <span class="detail-val">${esc(meetup.meetup_place)}</span></div>` : ''}
+          ${meetup.meetup_notes ? `<div class="detail-row"><span class="detail-key">Notes</span>
+            <span class="detail-val" style="white-space:pre-wrap">${esc(meetup.meetup_notes)}</span></div>` : ''}
+        </div>` : `<p class="muted small mb-0">No meetup point yet${isDriver ? ' — add one so riders know where to go.' : '. Ask your driver to add one.'}</p>`}
+      <div class="safety-note mt-3">Meet somewhere public and well lit, and tell someone you trust
       where you're going and who you're travelling with.</div>
-      ${(isDriver || amAccepted) ? '<button class="btn btn-secondary btn-sm mt-2" id="contactsBtn">Show contact details</button>' : ''}
-    </section>` : ''}
-
-    <section class="card">
-      <div class="card-head"><h3>Driver</h3>
-        ${!isDriver ? '<button class="btn btn-ghost btn-sm" id="reportDriver">Report or block</button>' : ''}</div>
-      <div class="row" style="gap:1rem">
-        ${avatarEl(d, 'avatar-lg')}
-        <div style="min-width:0">
-          <div class="row" style="gap:.5rem"><strong style="font-size:1.05rem">${esc(d.full_name || 'Driver')}</strong>
-            ${verifiedBadge(d.verification_status)}</div>
-          <div class="small mt-1">
-            ${d.rating_count
-              ? `<span class="stars">${starString(d.rating_avg)}</span>
-                 <span class="muted">${Number(d.rating_avg).toFixed(1)} from ${d.rating_count} rating${d.rating_count === 1 ? '' : 's'}</span>`
-              : '<span class="muted">No ratings yet</span>'}
-          </div>
-          <div class="tiny muted mt-1">${d.rides_completed || 0} completed ride${d.rides_completed === 1 ? '' : 's'}</div>
-          <a class="small" href="profile.html?id=${esc(ride.driver_id)}">View full profile →</a>
-        </div>
-      </div>
-    </section>`;
+      <button class="btn btn-secondary btn-sm mt-3" id="contactsBtn">Show contact details</button>
+    </section>` : ''}`;
 
   $('#editMeetup')?.addEventListener('click', () => editMeetupDialog(ride, meetup));
   $('#contactsBtn')?.addEventListener('click', () => showContacts(ride.id));
@@ -184,12 +189,16 @@ function renderSide(ride, ctx) {
       </section>`);
   } else if (closed) {
     parts.push(`<section class="card"><div class="alert alert-warn mb-0">
-      This ride is ${esc(ride.status)} and is no longer accepting riders.</div></section>`);
+      ${ride.status === 'active'
+        ? 'This ride has reached its departure time, so the listing has closed and it is no longer accepting riders.'
+        : ride.status === 'completed'
+          ? 'This ride is finished. You can leave a rating for the people you travelled with.'
+          : 'This ride was cancelled and is no longer accepting riders.'}</div></section>`);
   } else if (myReq && myReq.status === 'pending') {
     parts.push(`
       <section class="card">
         <div class="card-head"><h3>Request sent</h3></div>
-        <p class="small muted">Waiting for ${esc(ride.driver?.full_name || 'the driver')} to respond.
+        <p class="small muted">Waiting for ${esc(ride.driver?.full_name || 'your driver')} to respond.
         ${myReq.guardian_status === 'pending' ? 'Your guardian also needs to approve this ride.' : ''}</p>
         <div class="ride-meta mb-2">
           <span class="badge badge-warn">${esc(REQUEST_STATUS_LABELS[myReq.status])}</span>
@@ -201,14 +210,14 @@ function renderSide(ride, ctx) {
   } else if (amAccepted) {
     parts.push(`
       <section class="card">
-        <div class="alert alert-ok"><strong>You have a seat on this ride.</strong></div>
-        <p class="small muted">The meetup details and contact numbers are on the left.</p>
+        <div class="alert alert-ok"><strong>Your seat is confirmed.</strong></div>
+        <p class="small muted">The meetup point and contact details are on the left.</p>
         <button class="btn btn-secondary btn-block" id="leaveBtn">Leave this ride</button>
       </section>`);
   } else if (myReq && myReq.status === 'rejected') {
     parts.push(`
       <section class="card">
-        <div class="alert alert-warn mb-2">The driver declined this request.</div>
+        <div class="alert alert-warn mb-2">Your driver couldn't take this one.</div>
         <p class="small muted mb-0">The seat may still be open for others. You can look for another ride.</p>
         <a class="btn btn-primary btn-block mt-2" href="find-ride.html">Find another ride</a>
       </section>`);
@@ -216,22 +225,22 @@ function renderSide(ride, ctx) {
     const blocked = full;
     parts.push(`
       <section class="card">
-        <div class="card-head"><h3>${blocked ? 'Ride full' : 'Ask for a seat'}</h3></div>
+        <div class="card-head"><h3>${blocked ? 'This ride is full' : 'Request a seat'}</h3></div>
         <div class="mb-2">${seatBadge(ride.seats_remaining)}</div>
         ${blocked
-          ? `<p class="small muted">Every seat on this ride is taken, so requests are closed.</p>
+          ? `<p class="small muted">Every seat is taken, so requests are closed for now.</p>
              <a class="btn btn-secondary btn-block" href="find-ride.html">Find another ride</a>`
           : `<label class="field"><span>Seats you need</span>
               <select id="seatsWanted">${
                 Array.from({ length: Math.min(4, ride.seats_remaining) }, (_, i) =>
                   `<option value="${i + 1}">${i + 1} seat${i ? 's' : ''}</option>`).join('')
               }</select></label>
-             <label class="field"><span>Message to the driver <span class="muted">(optional)</span></span>
+             <label class="field"><span>Say hello <span class="muted">(optional)</span></span>
               <textarea id="joinMessage" maxlength="500" style="min-height:74px"
                 placeholder="Hi! I'm on the robotics team too — happy to meet at the library."></textarea></label>
-             <button class="btn btn-primary btn-block btn-lg" id="requestBtn">Request to Join</button>
-             <p class="tiny muted mt-2 mb-0">You don't join automatically. The driver reviews your
-             profile and decides.${profile?.is_minor ? ' Your parent or guardian must approve too.' : ''}</p>`}
+             <button class="btn btn-primary btn-block btn-lg" id="requestBtn">Request a seat</button>
+             <p class="tiny muted mt-2 mb-0">Nothing is booked yet. Your driver reviews your profile
+             and decides.${profile?.is_minor ? ' Your parent or guardian approves it too.' : ''}</p>`}
       </section>`);
   }
 
@@ -239,9 +248,9 @@ function renderSide(ride, ctx) {
   if (isDriver) {
     parts.push(`
       <section class="card">
-        <div class="card-head"><h3>Requests</h3>
+        <div class="card-head"><h3>Seat requests</h3>
           <span class="badge ${pending.length ? 'badge-warn' : ''}">${pending.length} pending</span></div>
-        <div id="pendingList">${pending.length ? pending.map(pendingRow).join('') : '<p class="small muted mb-0">No pending requests right now.</p>'}</div>
+        <div id="pendingList">${pending.length ? pending.map(pendingRow).join('') : '<p class="small muted mb-0">Nobody is waiting on you right now.</p>'}</div>
         ${full && pending.length ? `<div class="alert alert-warn mt-2 mb-0 small">
           Your ride is full, so you cannot accept anyone else until a seat opens up.</div>` : ''}
       </section>`);
@@ -250,9 +259,9 @@ function renderSide(ride, ctx) {
   /* ---- who's on board ---- */
   parts.push(`
     <section class="card">
-      <div class="card-head"><h3>On board</h3><span class="badge">${participants.length}</span></div>
+      <div class="card-head"><h3>Riding along</h3><span class="badge">${participants.length}</span></div>
       ${participants.length ? participants.map((p) => `
-        <div class="row-between" style="padding:.5rem 0;border-bottom:1px solid var(--line)">
+        <div class="row-between" class="list-row">
           <div class="row" style="gap:.5rem">
             ${avatarEl(p.profile, 'avatar-sm')}
             <div><div class="small strong">${esc(p.profile?.full_name || 'Rider')}</div>
@@ -260,7 +269,7 @@ function renderSide(ride, ctx) {
           </div>
           ${isDriver ? `<button class="btn btn-ghost btn-sm" data-remove="${esc(p.user_id)}">Remove</button>` : ''}
         </div>`).join('')
-        : '<p class="small muted mb-0">No riders yet.</p>'}
+        : '<p class="small muted mb-0">No one has joined yet.</p>'}
     </section>`);
 
   /* ---- ratings after completion ---- */
@@ -277,7 +286,7 @@ function renderSide(ride, ctx) {
 function pendingRow(r) {
   const p = r.rider || {};
   return `
-    <div style="padding:.6rem 0;border-bottom:1px solid var(--line)">
+    <div class="list-row">
       <div class="row" style="gap:.5rem">
         ${avatarEl(p, 'avatar-sm')}
         <div style="min-width:0;flex:1">
@@ -308,7 +317,7 @@ function wireSide(ride, ctx) {
           message: $('#joinMessage').value,
           seats: Number($('#seatsWanted').value),
         });
-        toastOk('Request sent. The driver will review your request.');
+        toastOk('Request sent. Your driver will review your request.');
         load();
       } catch (err) { toastError(err); }
     });
@@ -481,7 +490,7 @@ async function renderRateBox(ride, ctx) {
   if (!people.length) { box.innerHTML = '<p class="small muted mb-0">Nobody else to rate on this ride.</p>'; return; }
 
   box.innerHTML = people.map((p) => `
-    <div style="padding:.6rem 0;border-bottom:1px solid var(--line)">
+    <div class="list-row">
       <div class="row-between">
         <div><span class="small strong">${esc(p.name || 'Member')}</span>
           <span class="badge">${esc(p.role)}</span></div>

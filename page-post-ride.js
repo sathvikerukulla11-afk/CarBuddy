@@ -1,4 +1,6 @@
-import { mountChrome, requireAuth, currentProfile, $, $$, esc, readableError, toastOk } from './ui.js';
+import {
+  mountChrome, requireAuth, currentProfile, $, $$, esc, readableError, toastOk, rideCard,
+} from './ui.js';
 import { createRide } from './rides.js';
 import { myActiveGroups } from './groups.js';
 import { todayISO } from './format.js';
@@ -27,9 +29,11 @@ if (profile?.is_suspended) {
     gate.innerHTML = `<div class="safety-note mb-3">You're under 18, so your guardian can see the
       rides you post and the people who join them.</div>`;
     form.hidden = false;
+    $('#previewCol').hidden = false;
   }
 } else {
   form.hidden = false;
+  $('#previewCol').hidden = false;
 }
 
 /* ---- Defaults ----------------------------------------------------------- */
@@ -56,6 +60,52 @@ function syncVisibility() {
 }
 $$('input[name="visibility"]').forEach((i) => i.addEventListener('change', syncVisibility));
 syncVisibility();
+
+/* ---- Live preview -------------------------------------------------------- */
+/**
+ * Renders the same card component riders will see, from whatever is currently
+ * typed. Purely visual — it never touches the database.
+ */
+function renderPreview() {
+  const host = $('#ridePreview');
+  if (!host) return;
+
+  const seats = Number($('#seats').value || 0);
+  const draft = {
+    id: 'preview',
+    origin_label: $('#origin').value.trim() || 'Where from?',
+    destination_label: $('#destination').value.trim() || 'Where to?',
+    depart_date: $('#date').value || null,
+    depart_time: $('#time').value || null,
+    seats_offered: seats,
+    seats_taken: 0,
+    seats_remaining: seats,
+    contribution_amount: Number($('#contribution').value || 0),
+    notes: $('#notes').value.trim() || null,
+    status: 'upcoming',
+    visibility: $$('input[name="visibility"]').find((i) => i.checked)?.value || 'verified',
+    group: null,
+    driver: {
+      full_name: profile?.full_name || 'You',
+      avatar_url: profile?.avatar_url || null,
+      rating_avg: profile?.rating_avg,
+      rating_count: profile?.rating_count,
+      verification_status: profile?.verification_status,
+    },
+  };
+
+  host.innerHTML = rideCard(draft, {
+    footer: `<div class="row" style="gap:12px">
+      <span class="contribution">${draft.contribution_amount > 0
+        ? '$' + draft.contribution_amount.toFixed(draft.contribution_amount % 1 ? 2 : 0) : 'Free'}</span>
+      <span class="btn btn-primary btn-sm" aria-disabled="true">Request a seat</span></div>`,
+  });
+}
+
+['#origin', '#destination', '#date', '#time', '#seats', '#contribution', '#notes']
+  .forEach((sel) => $(sel)?.addEventListener('input', renderPreview));
+$$('input[name="visibility"]').forEach((i) => i.addEventListener('change', renderPreview));
+renderPreview();
 
 /* ---- Submit ------------------------------------------------------------- */
 form.addEventListener('submit', async (e) => {

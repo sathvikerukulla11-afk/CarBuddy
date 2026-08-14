@@ -105,6 +105,21 @@ from — "← Back to Find a Ride" versus "← Back to My Rides".
 calls `requireAdmin()`. Both are conveniences — Row Level Security is what actually stops
 unauthorised reads and writes.
 
+### What happens when a ride's time arrives
+
+A listing does not linger past its departure. `close_departed_rides()` runs every
+five minutes under pg_cron and moves rides through two stages:
+
+| When | Status | What happens |
+|---|---|---|
+| Departure time passes | `upcoming` → `active` | The listing disappears from Find a Ride, the server refuses new requests, and **the driver is notified** that their listing has closed — including how many riders are travelling with them. Any request still unanswered is closed, and that rider is told their request expired. |
+| 12 hours after departure | `active` → `completed` | Ratings unlock and everyone is prompted to leave one. Completed-ride counters increment exactly as they do when a driver taps *Mark completed*. |
+
+The job is idempotent, so a second run inside the same window changes nothing and
+counters never double. A driver can still finish a ride early with *Mark completed*;
+that path is unchanged. Admins can trigger a run by hand with
+`select public.admin_close_departed_rides();`.
+
 ### Finding rides by distance
 
 Rides store `origin_lat` / `origin_lng`, geocoded from the typed place name when the ride
@@ -152,7 +167,7 @@ Storage: one public `avatars` bucket, writable only inside `avatars/<your-user-i
 
 ## 3. SQL
 
-**All twelve migrations are already applied to the live project.** You only need to run
+**All thirteen migrations are already applied to the live project.** You only need to run
 them if you rebuild the database elsewhere — in numeric order, pasted into the Supabase SQL
 editor. (The Supabase CLI expects them under `supabase/migrations/`; recreate that folder
 if you would rather use `supabase db push`.)
@@ -171,6 +186,7 @@ if you would rather use `supabase db push`.)
 | `0010_fix_guards_blocking_cascade_deletes.sql` | Guards no longer block `ON DELETE CASCADE` |
 | `0011_guards_scoped_to_client_roles.sql` | Guards scoped to client roles so account deletion works |
 | `0012_lock_down_function_execute_and_search_path.sql` | Revoke RPC EXECUTE from `anon`; pin every `search_path` |
+| `0013_ride_expiry_lifecycle.sql` | `close_departed_rides()` + the pg_cron schedule that runs it |
 
 Then, **once**, after signing up with the account that should be the administrator:
 
@@ -357,7 +373,6 @@ Honest list of what is *not* done.
 **Should do**
 
 - [ ] Address autocomplete in the ride form (the geocoder already supports `suggest()`).
-- [ ] Automatic ride completion via `pg_cron` so ratings unlock without the driver acting.
 - [ ] Email/SMS notifications — rows exist and arrive live in the browser, but nothing is sent.
 - [ ] A way to dispute a rating.
 - [ ] Group admin transfer, and deleting a group that still has rides attached.

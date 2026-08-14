@@ -1,5 +1,5 @@
 import {
-  mountChrome, requireAuth, currentProfile, $, esc, rideCard, emptyState,
+  mountChrome, requireAuth, currentProfile, $, $$, esc, rideCard, emptyState,
   loadingState, errorState, toastError, toastOk,
 } from './ui.js';
 import { searchRidesNearby } from './rides.js';
@@ -175,6 +175,21 @@ async function run() {
   }
 }
 
+/* ---- visible sort chips drive the (hidden) #sort select ---------------- */
+$$('.sort-chip').forEach((chip) => chip.addEventListener('click', () => {
+  $$('.sort-chip').forEach((c) => c.classList.toggle('active', c === chip));
+  $('#sort').value = chip.dataset.sort;
+  render(lastRides);
+}));
+
+/* ---- "More filters" disclosure ---------------------------------------- */
+$('#filtersToggle').addEventListener('click', (e) => {
+  const body = $('#filtersBody');
+  const open = body.classList.toggle('hidden') === false;
+  e.currentTarget.setAttribute('aria-expanded', String(open));
+  $('#filtersLabel').textContent = open ? 'Fewer filters' : 'More filters';
+});
+
 $('#searchForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   await anchorFromOriginText();
@@ -186,6 +201,9 @@ $('#clearBtn').addEventListener('click', () => {
   $('#searchForm').reset();
   $('#hideFull').checked = true;
   $('#radiusOut').textContent = 'Within 10 mi';
+  $('#filtersBody').classList.add('hidden');
+  $('#filtersToggle').setAttribute('aria-expanded', 'false');
+  $('#filtersLabel').textContent = 'More filters';
   setAnchor(null);   // also triggers run()
 });
 

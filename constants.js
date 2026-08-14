@@ -25,11 +25,17 @@ export const VISIBILITY = [
 ];
 
 export const RIDE_STATUS_LABELS = {
-  upcoming: 'Upcoming', active: 'In progress', completed: 'Completed', cancelled: 'Cancelled',
+  upcoming: 'Upcoming',
+  active: 'Under way',      // departure time has passed; the listing has closed
+  completed: 'Completed',
+  cancelled: 'Cancelled',
 };
 
 export const REQUEST_STATUS_LABELS = {
-  pending: 'Pending', accepted: 'Accepted', rejected: 'Declined', cancelled: 'Cancelled',
+  pending: 'Waiting on your driver',
+  accepted: 'Confirmed',
+  rejected: 'Declined',
+  cancelled: 'Closed',
 };
 
 export const GUARDIAN_STATUS_LABELS = {

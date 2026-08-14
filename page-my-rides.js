@@ -26,7 +26,9 @@ function sync() {
   render();
 }
 
-const isPast = (r) => r.status === 'completed' || r.status === 'cancelled' || new Date(r.depart_at) < new Date();
+// 'active' means the departure time has passed and the listing has closed.
+const isPast = (r) => r.status === 'completed' || r.status === 'cancelled'
+  || r.status === 'active' || new Date(r.depart_at) < new Date();
 
 const LOADING_LABEL = {
   driving: 'Loading the rides you are driving…',
@@ -70,6 +72,8 @@ async function renderDriving() {
       ${r.status === 'upcoming' ? `
         <button class="btn btn-ok btn-sm" data-complete="${esc(r.id)}">Complete</button>
         <button class="btn btn-ghost btn-sm" data-cancel="${esc(r.id)}">Cancel</button>` : ''}
+      ${r.status === 'active'
+        ? `<button class="btn btn-ok btn-sm" data-complete="${esc(r.id)}">Mark completed</button>` : ''}
     </div>`,
   });
 

@@ -3,42 +3,52 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0B2136">
 <title>Dashboard · CarBuddy</title>
 <meta name="description" content="Your upcoming rides, open seats, and join requests at a glance.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div id="nav"></div>
-<main class="wrap section-tight">
-  <div id="welcome" class="mb-3">
-    <h1 style="font-size:1.9rem;margin-bottom:.2rem">Dashboard</h1>
-    <p class="muted small mb-0">Loading your dashboard…</p>
-  </div>
 
-  <section class="mb-3" aria-label="Quick actions">
-    <div class="grid grid-3">
+<main class="wrap section-tight">
+  <header id="welcome" class="mb-4">
+    <h1 class="greeting">Welcome back</h1>
+    <p class="lede mb-0">Loading your rides…</p>
+  </header>
+
+  <div id="nextRide" class="mb-4"></div>
+
+  <section class="mb-4" aria-label="Quick actions">
+    <span class="label-quiet">Quick actions</span>
+    <div class="grid grid-2 mt-2">
       <a class="card card-hover quick-action" href="find-ride.html">
-        <span class="feature-icon" aria-hidden="true">🔍</span>
-        <strong>Find a Ride</strong>
-        <span class="small muted">Search trips going your way</span>
+        <span class="feature-icon" data-ico="pin"></span>
+        <span><span class="qa-title">Find a Ride</span>
+          <span class="qa-sub">Someone already heading your way</span></span>
+        <span class="qa-arrow" data-ico="arrow"></span>
       </a>
       <a class="card card-hover quick-action" href="post-ride.html">
-        <span class="feature-icon" aria-hidden="true">🚗</span>
-        <strong>Post a Ride</strong>
-        <span class="small muted">Offer your empty seats</span>
-      </a>
-      <a class="card card-hover quick-action" href="my-rides.html">
-        <span class="feature-icon" aria-hidden="true">📋</span>
-        <strong>My Rides</strong>
-        <span class="small muted">Everything you're driving or joining</span>
+        <span class="feature-icon" data-ico="car"></span>
+        <span><span class="qa-title">Post a Ride</span>
+          <span class="qa-sub">Offer the seats you already have</span></span>
+        <span class="qa-arrow" data-ico="arrow"></span>
       </a>
     </div>
   </section>
 
-  <div id="stats" class="grid grid-4 mb-3"></div>
+  <section class="mb-4">
+    <span class="label-quiet">Your activity</span>
+    <div id="stats" class="grid grid-4 mt-2"></div>
+  </section>
+
   <div id="panels"><div class="skeleton" style="height:220px"></div></div>
 </main>
+
 <div id="footer"></div>
 <script type="module" src="page-dashboard.js"></script>
 </body>
