@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B2136">
 <title>CarBuddy — Share the Ride. Get There Together.</title>
-<meta name="description" content="Community carpooling for people already heading the same way. Verified members, trusted groups, and parent-approved rides for younger riders.">
+<meta name="description" content="Community carpooling for people already heading the same way. Trusted groups and parent-approved rides for younger riders.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,7 +30,7 @@
         <a class="btn btn-secondary btn-lg" href="post-ride.html">Post a Ride</a>
       </div>
       <div class="hero-trust">
-        <span data-ico="check">Verified profiles</span>
+        <span data-ico="check">Real profiles</span>
         <span data-ico="check">Parent approval for under-18s</span>
         <span data-ico="check">No payments handled</span>
       </div>
@@ -61,7 +61,7 @@
           <span class="avatar avatar-sm">JR</span>
           <div>
             <div class="strong" style="font-size:.9rem">John R.</div>
-            <div class="tiny muted"><span class="stars">★</span> <span class="rating-num">4.9</span> · Verified</div>
+            <div class="tiny muted"><span class="stars">★</span> <span class="rating-num">4.9</span> · 23 rides</div>
           </div>
         </div>
         <span class="seats seats-open">3 seats available</span>
@@ -84,8 +84,8 @@
     <div class="grid grid-4">
       <div class="card trust-card">
         <span class="trust-icon" data-ico="shield"></span>
-        <h3>Verified profiles</h3>
-        <p class="small muted mb-0">Know who you're riding with before you ask for a seat.</p>
+        <h3>Real profiles</h3>
+        <p class="small muted mb-0">Names, photos, ratings and completed rides — know who you're riding with.</p>
       </div>
       <div class="card trust-card">
         <span class="trust-icon" data-ico="users"></span>
@@ -169,7 +169,37 @@
 <!-- ============================================================ closing -->
 <section class="section">
   <div class="wrap">
-    <div class="card card-pad-lg center" style="padding-block:64px">
+    <div class="card card-pad-lg center" style="padding-block:64px" id="closingCta">
+      <!-- filled in below, depending on whether you are signed in -->
+    </div>
+  </div>
+</section>
+
+<div id="footer"></div>
+<script type="module">
+  import { mountChrome, icon, $, $$ } from './ui.js';
+  const { session } = await mountChrome({ active: 'Home' });
+
+  // paint the inline icons declared with data-ico
+  $$('[data-ico]').forEach((el) => {
+    const size = el.classList.contains('trust-icon') ? 19
+               : el.classList.contains('journey-car') ? 14 : 15;
+    el.insertAdjacentHTML('afterbegin', icon(el.dataset.ico, size));
+  });
+
+  // Signed-in visitors already have an account, so send them to the rides
+  // instead of asking them to sign up again.
+  $('#closingCta').innerHTML = session ? `
+      <h2 style="max-width:22ch;margin-inline:auto">Where are you heading?</h2>
+      <p class="muted" style="max-width:44ch;margin-inline:auto">
+        Find someone already going your way, or offer the empty seats on a trip
+        you're taking anyway.
+      </p>
+      <div class="row" style="justify-content:center;margin-top:32px">
+        <a class="btn btn-primary btn-lg" href="find-ride.html">Find a Ride</a>
+        <a class="btn btn-secondary btn-lg" href="post-ride.html">Post a Ride</a>
+      </div>`
+    : `
       <h2 style="max-width:20ch;margin-inline:auto">Ready to share the journey?</h2>
       <p class="muted" style="max-width:44ch;margin-inline:auto">
         Join your community, find someone already heading your way, or offer the
@@ -178,21 +208,7 @@
       <div class="row" style="justify-content:center;margin-top:32px">
         <a class="btn btn-primary btn-lg" href="signup.html">Create an account</a>
         <a class="btn btn-secondary btn-lg" href="safety.html">How we keep it safe</a>
-      </div>
-    </div>
-  </div>
-</section>
-
-<div id="footer"></div>
-<script type="module">
-  import { mountChrome, icon, $$ } from './ui.js';
-  await mountChrome({ active: 'Home' });
-  // paint the inline icons declared with data-ico
-  $$('[data-ico]').forEach((el) => {
-    const size = el.classList.contains('trust-icon') ? 19
-               : el.classList.contains('journey-car') ? 14 : 15;
-    el.insertAdjacentHTML('afterbegin', icon(el.dataset.ico, size));
-  });
+      </div>`;
 </script>
 </body>
 </html>

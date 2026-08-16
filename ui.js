@@ -6,6 +6,7 @@ import { supabase, isConfigured, readableError } from './client.js';
 import { getMyProfile } from './profiles.js';
 import { signOut } from './auth.js';
 import { unreadCount, subscribe } from './notifications.js';
+import { unreadMessageCount } from './messages-api.js';
 import { seatState, initials, whenLine, money } from './format.js';
 import { RIDE_STATUS_LABELS } from './constants.js';
 
@@ -106,6 +107,7 @@ const NAV_SIGNED_IN = [
   { href: 'post-ride.html', label: 'Post a Ride' },
   { href: 'dashboard.html', label: 'Dashboard' },
   { href: 'my-rides.html',  label: 'My Rides' },
+  { href: 'messages.html',  label: 'Messages' },
 ];
 
 const NAV_SIGNED_OUT = [
@@ -128,8 +130,13 @@ export async function mountChrome({ active = '' } = {}) {
   const here = location.pathname.split('/').pop() || 'index.html';
 
   const isActive = (i) => i.href === here || i.label === active;
-  const link = (i) =>
-    `<a href="${i.href}"${isActive(i) ? ' class="active" aria-current="page"' : ''}>${i.label}</a>`;
+  const link = (i) => {
+    // "Messages" carries a live unread badge; everything else is a plain link.
+    const badge = i.href === 'messages.html'
+      ? `<span class="unread-pill hidden" data-msg-count
+              style="margin-left:6px;min-width:18px;height:18px;font-size:.66rem"></span>` : '';
+    return `<a href="${i.href}"${isActive(i) ? ' class="active" aria-current="page"' : ''}>${i.label}${badge}</a>`;
+  };
 
   const primary = session ? NAV_SIGNED_IN : NAV_SIGNED_OUT;
   const menu = session
@@ -250,7 +257,7 @@ export async function mountChrome({ active = '' } = {}) {
           </div>
           <div><h4>Rides</h4><div class="footer-links">
             <a href="find-ride.html">Find a Ride</a><a href="post-ride.html">Post a Ride</a>
-            <a href="my-rides.html">My Rides</a><a href="groups.html">Trusted Groups</a>
+            <a href="my-rides.html">My Rides</a><a href="messages.html">Messages</a>
           </div></div>
           <div><h4>Trust &amp; safety</h4><div class="footer-links">
             <a href="safety.html">Safety Center</a><a href="safety.html#rules">Community rules</a>
@@ -269,9 +276,26 @@ export async function mountChrome({ active = '' } = {}) {
   }
 
   if (!isConfigured) showConfigWarning();
+
+  if (session) {
+    unreadMessageCount().then((n) => {
+      document.querySelectorAll('[data-msg-count]').forEach((el) => {
+        el.textContent = n > 9 ? '9+' : String(n);
+        el.classList.toggle('hidden', !n);
+      });
+    }).catch(() => { /* the badge is cosmetic */ });
+  }
+
   if (session?.user?.id) {
     subscribe(session.user.id, (n) => {
       toast(n.title);
+      if (n.type === 'message') {
+        document.querySelectorAll('[data-msg-count]').forEach((el) => {
+          const next = (parseInt(el.textContent) || 0) + 1;
+          el.textContent = next > 9 ? '9+' : String(next);
+          el.classList.remove('hidden');
+        });
+      }
       const dot = document.getElementById('bellCount');
       if (dot) dot.textContent = String(Math.min(9, (parseInt(dot.textContent) || 0) + 1)) + '+';
     });
@@ -371,10 +395,12 @@ export function seatBadge(remaining) {
   return `<span class="seats ${s.cls}">${esc(label)}</span>`;
 }
 
-export function verifiedBadge(status) {
-  if (status === 'verified') return `<span class="badge badge-verified">${icon('check', 12)} Verified</span>`;
-  if (status === 'pending')  return '<span class="badge badge-warn">Verification pending</span>';
-  return '<span class="badge badge-quiet">Not yet verified</span>';
+/**
+ * Verification is switched off for now, so this renders nothing. The database
+ * still tracks verification_status, so restoring the badge is a one-line change.
+ */
+export function verifiedBadge() {
+  return '';
 }
 
 export function avatarEl(profile, cls = '') {
@@ -387,7 +413,7 @@ export function visibilityBadge(ride) {
     return `<span class="badge badge-brand">${esc(ride.group?.name || 'Trusted group')}</span>`;
   }
   if (ride.visibility === 'approval') return '<span class="badge badge-quiet">By invite</span>';
-  return '<span class="badge badge-quiet">Open to verified members</span>';
+  return '<span class="badge badge-quiet">Open to everyone</span>';
 }
 
 /** The vertical origin → destination rail used on cards and the ride page. */
@@ -440,8 +466,7 @@ export function rideCard(ride, { href = `ride.html?id=${ride.id}&from=find`, foo
         ${avatarEl(d, 'avatar-sm')}
         <div style="min-width:0">
           <div class="name">${esc(d.full_name || 'Driver')}</div>
-          <div class="meta">${rating}${d.verification_status === 'verified'
-            ? ` <span class="badge badge-verified" style="padding:0 .34rem">${icon('check', 10)}</span>` : ''}</div>
+          <div class="meta">${rating}</div>
         </div>
       </div>
       <span class="spacer"></span>

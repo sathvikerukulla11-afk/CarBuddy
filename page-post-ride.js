@@ -90,7 +90,6 @@ function renderPreview() {
       avatar_url: profile?.avatar_url || null,
       rating_avg: profile?.rating_avg,
       rating_count: profile?.rating_count,
-      verification_status: profile?.verification_status,
     },
   };
 

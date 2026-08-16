@@ -1,6 +1,6 @@
 import {
   mountChrome, requireAuth, currentProfile, $, $$, esc, qs, modal, confirmDialog,
-  toastOk, toastError, seatBadge, verifiedBadge, avatarEl,
+  toastOk, toastError, readableError, seatBadge, avatarEl,
   visibilityBadge, emptyState, errorState, loadingState, backLink, withBusy,
   routeBlock,
 } from './ui.js';
@@ -12,10 +12,11 @@ import {
   requestToJoin, myRequestForRide, requestsForRide, cancelRequest, respondToRequest,
 } from './requests.js';
 import { blockUser, submitReport, rateUser, myRatingsGiven } from './safety.js';
+import { myRideConversation } from './messages-api.js';
 import {
   REPORT_CATEGORIES, REQUEST_STATUS_LABELS, GUARDIAN_STATUS_LABELS, RIDE_STATUS_LABELS,
 } from './constants.js';
-import { whenLine, contributionLine } from './format.js';
+import { whenLine, contributionLine, initials } from './format.js';
 
 await mountChrome();
 const session = await requireAuth();
@@ -114,7 +115,6 @@ function renderMain(ride, ctx) {
               ? `<span><span class="stars">★</span> <span class="rating-num">${Number(d.rating_avg).toFixed(1)}</span>
                  <span class="muted small">(${d.rating_count})</span></span>`
               : '<span class="muted small">New member</span>'}
-            ${verifiedBadge(d.verification_status)}
           </div>
           <div class="tiny muted mt-1">${d.rides_completed || 0} completed ride${d.rides_completed === 1 ? '' : 's'}</div>
           <a class="small" href="profile.html?id=${esc(ride.driver_id)}">View full profile</a>
@@ -132,7 +132,7 @@ function renderMain(ride, ctx) {
         <div class="detail-row"><span class="detail-key">Who can join</span>
           <span class="detail-val">${ride.visibility === 'group'
             ? esc(ride.group?.name || 'A trusted group')
-            : ride.visibility === 'approval' ? 'People the driver invites' : 'Any verified member'}</span></div>
+            : ride.visibility === 'approval' ? 'People the driver invites' : 'Anyone on CarBuddy'}</span></div>
         ${ride.cancelled_reason ? `<div class="detail-row"><span class="detail-key">Cancelled because</span>
           <span class="detail-val">${esc(ride.cancelled_reason)}</span></div>` : ''}
       </div>
@@ -147,6 +147,14 @@ function renderMain(ride, ctx) {
     </section>
 
     ${(isDriver || amAccepted) ? `
+    <section class="card" id="contactCard">
+      <div class="card-head"><h3>${isDriver ? 'Your riders' : 'Your driver'}</h3>
+        <span class="badge badge-ok">Seat confirmed</span></div>
+      <div id="contactList">${loadingState('Loading contact details…', 0)}</div>
+      <a class="btn btn-primary btn-block mt-3 hidden" id="messageBtn" href="#">
+        ${isDriver ? 'Message riders' : 'Message driver'}</a>
+    </section>
+
     <section class="card">
       <div class="card-head"><h3>Meetup</h3>
         ${isDriver ? '<button class="btn btn-secondary btn-sm" id="editMeetup">Edit</button>' : ''}</div>
@@ -159,11 +167,18 @@ function renderMain(ride, ctx) {
         </div>` : `<p class="muted small mb-0">No meetup point yet${isDriver ? ' — add one so riders know where to go.' : '. Ask your driver to add one.'}</p>`}
       <div class="safety-note mt-3">Meet somewhere public and well lit, and tell someone you trust
       where you're going and who you're travelling with.</div>
-      <button class="btn btn-secondary btn-sm mt-3" id="contactsBtn">Show contact details</button>
     </section>` : ''}`;
 
   $('#editMeetup')?.addEventListener('click', () => editMeetupDialog(ride, meetup));
-  $('#contactsBtn')?.addEventListener('click', () => showContacts(ride.id));
+  if (ctx.isDriver || ctx.amAccepted) {
+    loadContacts(ride.id, ctx.isDriver);
+    // The conversation is created by the server when a rider is accepted; this
+    // only finds the existing one, so opening a ride never makes a duplicate.
+    myRideConversation(ride.id).then((cid) => {
+      const btn = $('#messageBtn');
+      if (btn && cid) { btn.href = `messages.html?c=${cid}`; btn.classList.remove('hidden'); }
+    }).catch(() => { /* button simply stays hidden */ });
+  }
   $('#reportDriver')?.addEventListener('click', () => reportDialog(ride, d));
 }
 
@@ -425,23 +440,42 @@ function cancelRideDialog(ride) {
   });
 }
 
-async function showContacts(rideId) {
+/**
+ * Phone numbers, shown only after the driver accepts. The database refuses this
+ * call for anyone whose seat is not confirmed, so this is a presentation layer
+ * over a real permission — not a hidden field.
+ */
+async function loadContacts(rideId, isDriver) {
+  const host = $('#contactList');
+  if (!host) return;
   try {
     const rows = await getRideContacts(rideId);
-    modal({
-      title: 'Contact details',
-      body: rows.length ? `
-        <table class="data" style="min-width:0"><tbody>
-        ${rows.map((r) => `<tr><td>${esc(r.full_name)}</td>
-          <td><span class="badge">${esc(r.role)}</span></td>
-          <td>${r.phone ? `<a href="tel:${esc(r.phone)}">${esc(r.phone)}</a>` : '<span class="muted tiny">No number saved</span>'}</td></tr>`).join('')}
-        </tbody></table>
-        <div class="safety-note mt-2">Shared only with confirmed riders and their guardians.
-        Please don't pass these numbers on.</div>`
-        : '<p class="muted mb-0">No contact details available.</p>',
-      actions: [{ label: 'Close', onClick: (_, c) => c() }],
-    });
-  } catch (err) { toastError(err); }
+    const others = rows.filter((r) => r.user_id !== me);
+
+    host.innerHTML = others.length ? `
+      ${others.map((r) => `
+        <div class="list-row">
+          <div class="row" style="gap:10px;min-width:0">
+            <span class="avatar avatar-sm">${esc(initials(r.full_name))}</span>
+            <div style="min-width:0">
+              <div class="small strong">${esc(r.full_name)}</div>
+              <div class="tiny muted">${r.role === 'driver' ? 'Your driver' : 'Riding with you'}</div>
+            </div>
+          </div>
+          ${r.phone
+            ? `<div class="row" style="gap:6px">
+                 <a class="btn btn-secondary btn-sm" href="tel:${esc(r.phone)}">${esc(r.phone)}</a>
+                 <a class="btn btn-ghost btn-sm" href="sms:${esc(r.phone)}">Text</a>
+               </div>`
+            : '<span class="tiny muted">No number saved</span>'}
+        </div>`).join('')}
+      <p class="tiny muted mt-3 mb-0">${isDriver
+        ? 'You can see your riders because you accepted them. They can see your number, but not each other\'s.'
+        : 'You can see this because your seat is confirmed. Please keep it between you.'}</p>`
+      : '<p class="small muted mb-0">Nobody else is on this ride yet.</p>';
+  } catch (err) {
+    host.innerHTML = `<div class="alert alert-warn mb-0">${esc(readableError(err))}</div>`;
+  }
 }
 
 function reportDialog(ride, driver) {

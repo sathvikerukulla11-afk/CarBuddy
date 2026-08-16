@@ -105,6 +105,70 @@ from — "← Back to Find a Ride" versus "← Back to My Rides".
 calls `requireAdmin()`. Both are conveniences — Row Level Security is what actually stops
 unauthorised reads and writes.
 
+### The admin console
+
+`admin.html` is a single-page console with a sidebar: Dashboard, Users, Rides,
+Reports, Verification, Analytics, Settings. On phones the sidebar becomes a
+hamburger drawer. It shares the member site's palette, type and components, just
+denser — tables instead of cards, and tables collapse into cards below 860px.
+
+**Authorisation is in the database, not the page.** Every read and write calls a
+`SECURITY DEFINER` function that begins with `if not public.is_admin() then raise`.
+Deleting the JavaScript guard would change nothing: a non-admin calling
+`admin_overview()` or `admin_suspend_user()` directly gets *"Administrators only"*
+from Postgres. `admin_actions` is protected by RLS so only admins can read it, and
+it has no insert policy at all — only the server-side helper can append.
+
+The `role` column is `'admin'` or `'user'`, GENERATED from `is_admin`, so it has a
+single source of truth and nobody can write to it — including the account itself.
+
+Every consequential action is recorded in `admin_actions` with the admin, the
+target, a human-readable label and a details payload — visible under Settings.
+
+### Messaging
+
+Conversations are tied to a ride and you cannot start one with a stranger. The
+only thing that grants membership is a driver accepting a rider — at that moment
+`respond_to_request()` calls `add_conversation_member()`, which creates the ride's
+conversation on first use and reuses it forever after. `conversations.ride_id` is
+`UNIQUE`, so a duplicate is not merely avoided, it is impossible.
+
+One group thread per ride: driver plus every accepted rider. Members are listed in
+the chat header, and the ride's route, time and free seats sit above the messages
+with a link through to the ride.
+
+**Everything is decided in Postgres.** RLS on all three tables is membership-based,
+and there are no INSERT, UPDATE or DELETE policies at all — messages go through
+`send_message()`, which stamps `sender_id` from the session, so a sender cannot be
+forged and a message cannot be edited or deleted afterwards. Realtime respects the
+same policies: a client subscribing to someone else's conversation receives nothing.
+
+Blocking makes a thread read-only for the pair involved and keeps the history.
+Cancelled and completed rides keep their conversations, with a banner explaining
+the state. Reporting a conversation files into the existing moderation queue; an
+admin can read the thread **only** for a reported conversation, and every such view
+is written to the admin action log under their name.
+
+### Exchanging phone numbers
+
+Nobody sees anybody's number until a seat is actually confirmed. `get_ride_contacts()`
+decides who sees what, in Postgres:
+
+| You are | You see |
+|---|---|
+| The driver | every confirmed rider's number |
+| A confirmed rider | the driver's number (and your own row) |
+| A linked guardian | everyone on a ride your minor is confirmed on |
+| Pending, rejected or cancelled | nothing — *"Contact details are shared once your seat is confirmed"* |
+
+Co-riders deliberately do **not** get each other's numbers; the exchange is between
+you and your driver. Numbers appear inline on the ride page as tappable call and
+text links the moment the driver accepts — there is no button to press.
+
+Phone numbers live in `profiles_private`, which no member can read directly. This
+function is the only route to them, and it is `SECURITY DEFINER` precisely so the
+rule lives in one place.
+
 ### What happens when a ride's time arrives
 
 A listing does not linger past its departure. `close_departed_rides()` runs every
@@ -156,6 +220,10 @@ says so. To switch to Google or Mapbox later, `geocode.js` is the only file that
 | `blocked_users` | Two-way invisibility between members. |
 | `guardian_relationships` | Guardian ↔ minor link, invite code, active/revoked. |
 | `notifications` | Server-written events; read by the bell and (later) mobile push. |
+| `admin_actions` | Append-only audit trail. Readable only by admins, writable only by the server. |
+| `conversations` | One per ride (`ride_id` is unique, so duplicates are impossible). |
+| `conversation_members` | Who is in a thread, plus `last_read_at`, which drives unread counts. |
+| `messages` | Immutable to clients. Written only by `send_message()`. |
 
 Enums: `age_category`, `verification_status`, `ride_status`, `request_status`,
 `guardian_approval`, `ride_visibility`, `participant_status`, `group_type`,
@@ -167,7 +235,7 @@ Storage: one public `avatars` bucket, writable only inside `avatars/<your-user-i
 
 ## 3. SQL
 
-**All thirteen migrations are already applied to the live project.** You only need to run
+**All twenty migrations are already applied to the live project.** You only need to run
 them if you rebuild the database elsewhere — in numeric order, pasted into the Supabase SQL
 editor. (The Supabase CLI expects them under `supabase/migrations/`; recreate that folder
 if you would rather use `supabase db push`.)
@@ -187,6 +255,13 @@ if you would rather use `supabase db push`.)
 | `0011_guards_scoped_to_client_roles.sql` | Guards scoped to client roles so account deletion works |
 | `0012_lock_down_function_execute_and_search_path.sql` | Revoke RPC EXECUTE from `anon`; pin every `search_path` |
 | `0013_ride_expiry_lifecycle.sql` | `close_departed_rides()` + the pg_cron schedule that runs it |
+| `0014_admin_actions_and_role.sql` | `admin_actions` audit table, generated `role` column, logging on every admin write |
+| `0015_admin_dashboard_reads.sql` | Overview, activity feed, user detail, ride list and detail |
+| `0016_admin_reports_verification_analytics.sql` | Report queue and detail, verification queue, analytics, action log |
+| `0017_contacts_and_verification_off.sql` | Contact sharing narrowed to confirmed seats; verification dropped from the activity feed |
+| `0018_messaging_schema.sql` | `conversations`, `conversation_members`, `messages`; membership RLS; realtime publication |
+| `0019_messaging_rpcs.sql` | send / read / list / report, and the accept hook that creates the conversation |
+| `0020_reports_survive_target_deletion.sql` | A report no longer blocks deleting the ride or account it referenced |
 
 Then, **once**, after signing up with the account that should be the administrator:
 
@@ -313,6 +388,51 @@ Two real bugs surfaced during that run and are fixed in migrations 0010 and 0011
 an account failed because the write guards blocked the foreign-key cascades. The linter then
 surfaced a third: every RPC was callable by signed-out visitors, fixed in 0012.
 
+### The admin console
+
+1. Make yourself an admin — see below — then open `admin.html`.
+2. **Dashboard** shows seven live counters plus a Safety & reports panel and a
+   recent-activity feed. Nothing is hardcoded; every number is a Supabase query.
+3. **Users** — search, filter by All / Verified / Unverified / Suspended, then
+   *View* for the full record: contact details, ride history, reports involving
+   them, and Suspend / Reinstate / Review verification.
+4. **Rides** — filter by status, search by driver or place, open one to see the
+   route, driver, riders and requests, and cancel it (which really cancels it).
+5. **Reports** — the queue, ordered so pending and safety-flagged rise to the top.
+   Open one for the reporter, the reported member's history and prior reports, then
+   Mark under review / Resolve / Dismiss / Suspend.
+6. **Verification** — approve or reject; the badge changes across the site.
+7. **Analytics** — 30-day charts. With little data you'll correctly see
+   *"Not enough data yet"* rather than invented numbers.
+8. **Settings** — your admin account and the full action log.
+
+To prove the security is real, sign in as a normal member and run this in the
+console — every line must fail:
+
+```js
+await supabase.rpc('admin_overview');                       // Administrators only
+await supabase.rpc('admin_suspend_user', { p_user: '<id>', p_suspend: true });
+await supabase.from('admin_actions').select('*');           // returns []
+await supabase.from('profiles').update({ is_admin: true }).eq('id', '<your id>');
+```
+
+### Messaging
+
+1. As a driver, post a ride. As a second account, request a seat.
+2. Accept the request. A conversation appears for both of you — check
+   **Messages** in the nav; the driver also gets a **Message riders** button on
+   the ride page, the rider a **Message driver** button.
+3. Send a message from one browser. It appears in the other **without a refresh** —
+   that's Supabase Realtime, not polling.
+4. Leave one browser on another page: the Messages nav item shows an unread count.
+   Open the conversation and it clears.
+5. Accept a third account onto the same ride — they join the *same* thread and can
+   read the history. No second conversation is created.
+6. Sign in as someone unrelated and try `supabase.rpc('conversation_messages', …)`
+   with the conversation id — you get "You are not part of this conversation".
+7. Use **Report** in the chat header; the report lands in the admin console with a
+   *Reported conversation* panel. Opening the messages there is logged under Settings.
+
 ### Walk it yourself
 
 1. **Sign up** as *Driver A*. With email confirmation off you land straight on the dashboard.
@@ -347,17 +467,32 @@ await supabase.from('profiles_private').select('*');   // returns only your own 
 
 ---
 
-## 8. Before you launch publicly
+## 8. Verification is switched off
 
-Honest list of what is *not* done.
+Verification never gated anything — it was badges and wording only, never a
+condition for posting or joining. It is now hidden throughout the member site and
+the admin console.
+
+Everything behind it is intact: the `verification_status` column, the
+`admin_set_verification()` and `request_verification()` RPCs, and
+`VERIFICATION_LABELS`. Turning it back on means restoring `verifiedBadge()` in
+`ui.js` (currently a no-op with a comment saying so) and re-adding the admin
+section — no migration required.
+
+---
+
+## 9. Before you launch publicly
 
 **Must do**
 
 - [ ] **Turn off "Confirm email"** in the Supabase dashboard (see §4).
-- [ ] **Bootstrap an admin** — otherwise nobody can review reports or approve verifications.
-- [ ] **Real identity verification.** Today "verified" means an admin clicked Approve. There
-      is no ID document check, licence check, or insurance check. Decide what evidence you
-      require and build the intake before advertising the badge.
+- [ ] **Bootstrap an admin** — otherwise nobody can review reports or approve
+      verifications. Sign up normally, then run this once in the Supabase SQL editor:
+      `select public.bootstrap_admin('you@example.com');`
+      It refuses to run a second time. Promote further admins from the console.
+- [ ] **Identity verification.** Currently switched off entirely (see above). If you turn
+      it back on, decide what evidence you actually require first — an admin clicking
+      Approve is not a background check, and the badge shouldn't imply one.
 - [ ] **Legal review.** Terms of service, privacy policy, and a clear statement that you are
       not a transport provider. Carrying minors and accepting contributions have real
       regulatory implications that vary by state — get advice.

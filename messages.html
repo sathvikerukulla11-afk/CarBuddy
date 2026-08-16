@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0B2136">
-<meta name="robots" content="noindex, nofollow">
-<title>Admin · CarBuddy</title>
+<title>Messages · CarBuddy</title>
+<meta name="description" content="Message the people you're sharing a ride with.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,11 +13,11 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div id="root">
-  <div class="wrap" style="padding:80px 20px">
-    <div class="loading-line"><span class="spinner" aria-hidden="true"></span>Checking your access…</div>
-  </div>
-</div>
-<script type="module" src="page-admin.js"></script>
+<div id="nav"></div>
+<main class="wrap wrap-mid section-tight" id="page">
+  <div class="skeleton" style="height:260px"></div>
+</main>
+<div id="footer"></div>
+<script type="module" src="page-messages.js"></script>
 </body>
 </html>

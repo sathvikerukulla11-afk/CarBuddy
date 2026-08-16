@@ -131,8 +131,7 @@ function requestCard(r) {
     <dl class="kv">
       <dt>Route</dt><dd>${esc(r.ride?.origin_label)} → ${esc(r.ride?.destination_label)}</dd>
       <dt>When</dt><dd>${esc(whenLine(r.ride?.depart_date, r.ride?.depart_time))}</dd>
-      <dt>Driver</dt><dd>${esc(d.full_name || 'Driver')}
-        ${d.verification_status === 'verified' ? '<span class="badge badge-ok">✓ Verified</span>' : '<span class="badge badge-warn">Unverified</span>'}</dd>
+      <dt>Driver</dt><dd>${esc(d.full_name || 'Driver')}</dd>
       <dt>Driver rating</dt><dd>${d.rating_count
         ? `<span class="stars">${starString(d.rating_avg)}</span> ${Number(d.rating_avg).toFixed(1)} (${d.rating_count}) · ${d.rides_completed || 0} rides`
         : 'No ratings yet'}</dd>

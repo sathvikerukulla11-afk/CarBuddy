@@ -9,8 +9,9 @@ export const AGE_CATEGORIES = [
 export const VISIBILITY = [
   {
     value: 'verified',
-    label: 'Anyone verified',
-    desc: 'Listed publicly. Any verified member can request a seat — you still approve each one.',
+    // The stored enum value is still 'verified'; only the wording changed.
+    label: 'Anyone on CarBuddy',
+    desc: 'Listed publicly. Any member can request a seat — you still approve each one.',
   },
   {
     value: 'group',

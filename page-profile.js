@@ -1,11 +1,11 @@
 import {
   mountChrome, requireAuth, currentProfile, $, $$, esc, qs, modal, confirmDialog,
-  toastOk, toastError, verifiedBadge, avatarEl, emptyState, withBusy,
+  toastOk, toastError, avatarEl, emptyState,
   loadingState, errorState, backLink,
 } from './ui.js';
 import {
   getProfile, getMyPrivateProfile, updateMyProfile, updateMyPrivateProfile,
-  uploadAvatar, requestVerification, getRatingsFor,
+  uploadAvatar, getRatingsFor,
 } from './profiles.js';
 import { signOut } from './auth.js';
 import { blockUser, unblockUser, myBlockList, submitReport } from './safety.js';
@@ -57,7 +57,6 @@ async function renderMine() {
         <div style="flex:1;min-width:220px">
           <div class="row" style="gap:.5rem">
             <span class="person-name" style="font-size:1.4rem">${esc(p.full_name)}</span>
-            ${verifiedBadge(p.verification_status)}
             ${p.is_minor ? '<span class="badge badge-info">Under 18</span>' : ''}
             ${p.is_admin ? '<span class="badge badge-brand">Admin</span>' : ''}
           </div>
@@ -76,13 +75,7 @@ async function renderMine() {
               <div class="k">member since</div>
             </div>
           </div>
-          ${p.verification_status !== 'verified' ? `
-            <div class="mt-2">
-              <button class="btn btn-primary btn-sm" id="verifyBtn"
-                ${p.verification_status === 'pending' ? 'disabled' : ''}>
-                ${p.verification_status === 'pending' ? 'Verification pending review' : 'Request verification'}</button>
-              <p class="tiny muted mt-1 mb-0">Verified members are trusted more and can join public rides.</p>
-            </div>` : ''}
+
         </div>
       </div>
     </section>
@@ -149,13 +142,6 @@ async function renderMine() {
     </section>`;
 
   $('#signOut').addEventListener('click', async () => { await signOut(); location.href = 'index.html'; });
-
-  $('#verifyBtn')?.addEventListener('click', async (e) => {
-    await withBusy(e.currentTarget, 'Submitting…', async () => {
-      try { await requestVerification(); toastOk('Verification requested — an admin will review it'); renderMine(); }
-      catch (err) { toastError(err); }
-    });
-  });
 
   $('#avatarInput').addEventListener('change', async (e) => {
     const file = e.target.files?.[0];
@@ -226,7 +212,6 @@ async function renderOther(id) {
         <div style="flex:1;min-width:220px">
           <div class="row" style="gap:.5rem">
             <span class="person-name" style="font-size:1.4rem">${esc(p.full_name)}</span>
-            ${verifiedBadge(p.verification_status)}
             ${p.is_suspended ? '<span class="badge badge-danger">Suspended</span>' : ''}
           </div>
           ${p.home_area ? `<div class="small muted mt-1">${esc(p.home_area)}</div>` : ''}
