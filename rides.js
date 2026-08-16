@@ -219,3 +219,23 @@ export async function removeParticipant(rideId, userId) {
   const { error } = await supabase.rpc('remove_participant', { p_ride_id: rideId, p_user_id: userId });
   if (error) throw error;
 }
+
+
+/**
+ * What sharing rides has actually added up to, for the signed-in member.
+ * Everything is derived from completed rides; distance-based figures only count
+ * rides that were geocoded, and the caller is told how many that was so it can
+ * caveat the estimate honestly.
+ */
+export async function myImpact() {
+  const { data, error } = await supabase.rpc('my_impact');
+  if (error) throw error;
+  return data;
+}
+
+/** Public-safe community totals for the landing page. */
+export async function communityStats() {
+  const { data, error } = await supabase.rpc('community_stats');
+  if (error) throw error;
+  return data;
+}

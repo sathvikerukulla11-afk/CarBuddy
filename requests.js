@@ -9,17 +9,24 @@ export const REQUEST_COLUMNS = `
   responded_at, created_at
 `;
 
-export async function requestToJoin(rideId, { message = '', seats = 1 } = {}) {
+/**
+ * `ackVersion` comes from the safety notice the rider just confirmed. The
+ * server refuses the request without it, so this is not something the UI can
+ * skip by accident.
+ */
+export async function requestToJoin(rideId, { message = '', seats = 1, ackVersion } = {}) {
   const { data, error } = await supabase.rpc('request_to_join', {
     p_ride_id: rideId, p_message: message || null, p_seats: seats,
+    p_ack_version: ackVersion || null,
   });
   if (error) throw error;
   return data;
 }
 
-export async function respondToRequest(requestId, accept) {
+/** Accepting requires the driver's confirmation; declining does not. */
+export async function respondToRequest(requestId, accept, ackVersion) {
   const { data, error } = await supabase.rpc('respond_to_request', {
-    p_request_id: requestId, p_accept: accept,
+    p_request_id: requestId, p_accept: accept, p_ack_version: ackVersion || null,
   });
   if (error) throw error;
   return data;

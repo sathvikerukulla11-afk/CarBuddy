@@ -77,24 +77,40 @@ async function request(path, params) {
 
 /**
  * Best match for a place name.
+ *
+ * `near` matters more than it looks. Bare names like "Memorial High School" or
+ * "Lexington Clubhouse" match famous places on the other side of the country,
+ * which silently ruins distance search. When the caller knows roughly where the
+ * member is, we bias the lookup to that area first and only fall back to a
+ * blind search if nothing local matches.
+ *
  * @returns {{lat:number,lng:number,label:string}|null} null when nothing matched
  */
-export async function geocode(query, { countryCodes = 'us' } = {}) {
-  const key = 'g:' + norm(query);
+export async function geocode(query, { countryCodes = 'us', near = '' } = {}) {
   if (!norm(query)) return null;
+
+  const hasPlaceContext = /,/.test(query);      // "Frisco, TX" already says where
+  const biased = (near && !hasPlaceContext) ? `${query.trim()}, ${near.trim()}` : null;
+  const key = 'g:' + norm(biased || query);
 
   const hit = readCache(key);
   if (hit !== undefined) return hit;
 
-  try {
+  const lookup = async (q) => {
     const rows = await queued(() => request('/search', {
-      q: query, format: 'jsonv2', limit: 1, addressdetails: 1,
+      q, format: 'jsonv2', limit: 1, addressdetails: 1,
       ...(countryCodes ? { countrycodes: countryCodes } : {}),
     }));
     const first = rows?.[0];
-    const result = first
-      ? { lat: Number(first.lat), lng: Number(first.lon), label: first.display_name }
+    return first
+      ? { lat: Number(first.lat), lng: Number(first.lon), label: shortLabel(first),
+          full: first.display_name }
       : null;
+  };
+
+  try {
+    let result = biased ? await lookup(biased) : null;
+    if (!result) result = await lookup(query);
     writeCache(key, result);
     return result;
   } catch (err) {
@@ -102,6 +118,19 @@ export async function geocode(query, { countryCodes = 'us' } = {}) {
     console.warn('Geocoding failed:', err.message);
     return null;
   }
+}
+
+/**
+ * A carpool is a shared local journey. If two points land absurdly far apart it
+ * almost always means an ambiguous name matched the wrong town, so the caller
+ * can warn instead of quietly storing nonsense coordinates.
+ */
+export const IMPLAUSIBLE_TRIP_MILES = 250;
+
+export function looksImplausible(from, to) {
+  if (!from || !to) return false;
+  const m = milesBetween(from.lat, from.lng, to.lat, to.lng);
+  return m != null && m > IMPLAUSIBLE_TRIP_MILES;
 }
 
 /** Up to 5 suggestions, for a type-ahead. */

@@ -2,7 +2,7 @@ import {
   mountChrome, requireAuth, currentProfile, $, $$, esc, qs, modal, confirmDialog,
   toastOk, toastError, readableError, seatBadge, avatarEl,
   visibilityBadge, emptyState, errorState, loadingState, backLink, withBusy,
-  routeBlock,
+  routeBlock, safetyNotice,
 } from './ui.js';
 import {
   getRide, getParticipants, getRideMeetup, setRideMeetup, getRideContacts,
@@ -326,11 +326,16 @@ function pendingRow(r) {
 /* --------------------------------------------------------------- wiring --- */
 function wireSide(ride, ctx) {
   $('#requestBtn')?.addEventListener('click', async (e) => {
+    // The server refuses a request without this, so there is no path around it.
+    const ackVersion = await safetyNotice('rider');
+    if (!ackVersion) return;
+
     await withBusy(e.currentTarget, 'Sending request…', async () => {
       try {
         await requestToJoin(ride.id, {
           message: $('#joinMessage').value,
           seats: Number($('#seatsWanted').value),
+          ackVersion,
         });
         toastOk('Request sent. Your driver will review your request.');
         load();
@@ -376,8 +381,11 @@ function wireSide(ride, ctx) {
   });
 
   $$('[data-accept]').forEach((b) => b.addEventListener('click', async (e) => {
-    await withBusy(e.currentTarget, 'Accepting…', async () => {
-      try { await respondToRequest(e.currentTarget.dataset.accept, true); toastOk('Rider accepted — seat count updated'); load(); }
+    const btn = e.currentTarget;
+    const ackVersion = await safetyNotice('driver');
+    if (!ackVersion) return;
+    await withBusy(btn, 'Accepting…', async () => {
+      try { await respondToRequest(btn.dataset.accept, true, ackVersion); toastOk('Rider accepted — seat count updated'); load(); }
       catch (err) { toastError(err); load(); }
     });
   }));

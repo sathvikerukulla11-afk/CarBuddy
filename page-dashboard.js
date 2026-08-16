@@ -1,9 +1,9 @@
 import {
   mountChrome, requireAuth, currentProfile, $, $$, esc, rideCard, emptyState,
   avatarEl, seatBadge, toastOk, toastError, readableError, withBusy, confirmDialog,
-  routeBlock, icon,
+  routeBlock, icon, safetyNotice,
 } from './ui.js';
-import { myDrivingRides, myJoinedRides } from './rides.js';
+import { myDrivingRides, myJoinedRides, myImpact } from './rides.js';
 import { myIncomingRequests, myOutgoingRequests, respondToRequest } from './requests.js';
 import { GUARDIAN_STATUS_LABELS, REQUEST_STATUS_LABELS } from './constants.js';
 import { whenLine, relativeTime } from './format.js';
@@ -82,6 +82,9 @@ async function load() {
       </div>
     </div>`;
 
+  /* ------------------------------------------------------------ impact -- */
+  renderImpact();
+
   /* ------------------------------------------------------------- stats -- */
   const tile = (label, value, note, href) => `
     <a class="card card-hover stat-card" href="${href}">
@@ -128,8 +131,8 @@ async function load() {
           ${upcomingJoining.slice(0, 3).map((j) => rideCard(j.ride, {
             footer: `<a class="btn btn-secondary btn-sm" href="ride.html?id=${esc(j.ride.id)}&from=dashboard">View ride</a>` })).join('')}
         </div>`
-        : emptyState('🗓️', "You don't have any rides yet.",
-            'Search for a trip going your way, or offer the empty seats on one you are already taking.',
+        : emptyState('🗓️', "Nothing coming up yet.",
+            "Someone in your community is probably driving your way this week. Have a look, or offer your own spare seats.",
             `<div class="row mt-3" style="justify-content:center">
                <a class="btn btn-primary" href="find-ride.html">Find a Ride</a>
                <a class="btn btn-secondary" href="post-ride.html">Post a Ride</a></div>`)}
@@ -156,6 +159,59 @@ async function load() {
 
   panels.innerHTML = parts.join('');
   wire();
+}
+
+/**
+ * "Your impact" — the reason to come back. Real numbers only: if nothing has
+ * been completed yet we say so and point at the next useful action, rather than
+ * printing a wall of zeroes.
+ */
+async function renderImpact() {
+  const host = $('#impact');
+  if (!host) return;
+  try {
+    const i = await myImpact();
+
+    if (!i.rides_shared) {
+      host.innerHTML = `
+        <div class="impact">
+          <span class="label-quiet">Your impact</span>
+          <p class="muted small mt-2 mb-0">Once you've shared your first ride, this is where
+          you'll see how many journeys you've saved and what that added up to.</p>
+        </div>`;
+      return;
+    }
+
+    const measured = i.rides_measured > 0;
+    const stat = (value, label) => `
+      <div class="impact-stat">
+        <span class="impact-value">${esc(String(value))}</span>
+        <span class="impact-label">${esc(label)}</span>
+      </div>`;
+
+    host.innerHTML = `
+      <div class="impact">
+        <div class="row-between mb-3">
+          <span class="label-quiet">Your impact</span>
+          <span class="tiny muted">${i.as_driver} driven · ${i.as_rider} joined</span>
+        </div>
+        <div class="impact-grid">
+          ${stat(i.rides_shared, i.rides_shared === 1 ? 'ride shared' : 'rides shared')}
+          ${stat(i.trips_avoided, 'car journeys not made')}
+          ${measured ? stat(Number(i.miles_shared).toLocaleString() + ' mi', 'travelled together')
+                     : stat(i.seats_given, 'seats you gave')}
+          ${measured ? stat(Number(i.co2_kg).toLocaleString() + ' kg', 'CO₂ not emitted')
+                     : stat('$' + Number(i.contributions).toFixed(0), 'contributed to drivers')}
+        </div>
+        ${measured ? `<p class="impact-note">Distance covers ${i.rides_measured} of your
+          ${i.rides_shared} completed ride${i.rides_shared === 1 ? '' : 's'} — the ones we could place on a
+          map. CO₂ is an estimate at 0.4 kg per car mile.</p>`
+          : `<p class="impact-note">We could not place your rides on a map, so distance and CO₂
+          are not shown rather than guessed.</p>`}
+      </div>`;
+  } catch {
+    host.innerHTML = '';   // impact is a bonus; never block the dashboard on it
+  }
 }
 
 function requestRow(r) {
@@ -200,9 +256,12 @@ function requestRow(r) {
 
 function wire() {
   $$('[data-accept]').forEach((b) => b.addEventListener('click', async (e) => {
-    await withBusy(e.currentTarget, 'Accepting…', async () => {
+    const btn = e.currentTarget;
+    const ackVersion = await safetyNotice('driver');
+    if (!ackVersion) return;
+    await withBusy(btn, 'Accepting…', async () => {
       try {
-        await respondToRequest(e.currentTarget.dataset.accept, true);
+        await respondToRequest(btn.dataset.accept, true, ackVersion);
         toastOk('Rider accepted — the seat count has gone down');
       } catch (err) { toastError(err); }
       await load();

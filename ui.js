@@ -8,7 +8,7 @@ import { signOut } from './auth.js';
 import { unreadCount, subscribe } from './notifications.js';
 import { unreadMessageCount } from './messages-api.js';
 import { seatState, initials, whenLine, money } from './format.js';
-import { RIDE_STATUS_LABELS } from './constants.js';
+import { RIDE_STATUS_LABELS, SAFETY_NOTICE, SAFETY_NOTICE_VERSION } from './constants.js';
 
 export { readableError, isConfigured };
 
@@ -36,6 +36,11 @@ const I = {
   menu:    '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3.5 6h13M3.5 10h13M3.5 14h13"/></svg>',
   close:   '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 5l10 10M15 5 5 15"/></svg>',
   arrow:   '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M4 10h11M10.5 5.5 15 10l-4.5 4.5"/></svg>',
+  home:    '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.6 10 3.5l6.5 5.1V16a1 1 0 0 1-1 1h-3v-4.5h-5V17h-3a1 1 0 0 1-1-1V8.6Z"/></svg>',
+  search:  '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg>',
+  plus:    '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><path d="M10 6.8v6.4M6.8 10h6.4"/></svg>',
+  list:    '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5.5h9M7 10h9M7 14.5h9M4 5.5h.01M4 10h.01M4 14.5h.01"/></svg>',
+  chat:    '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 12a2.5 2.5 0 0 1-2.5 2.5H7L3 17.5V5.5A2.5 2.5 0 0 1 5.5 3h9A2.5 2.5 0 0 1 17 5.5V12Z"/></svg>',
   back:    '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M16 10H5M9.5 5.5 5 10l4.5 4.5"/></svg>',
 };
 export const icon = (name, size = 18) =>
@@ -241,6 +246,32 @@ export async function mountChrome({ active = '' } = {}) {
     };
     document.getElementById('logoutBtn')?.addEventListener('click', (e) => doLogout(e.currentTarget));
     document.getElementById('logoutBtnMobile')?.addEventListener('click', (e) => doLogout(e.currentTarget));
+  }
+
+  /* ---- phone tab bar ------------------------------------------------ */
+  // Only for signed-in members: signed-out visitors have nothing to switch
+  // between, and the header already offers Log in / Sign up.
+  if (session) {
+    const TABS = [
+      { href: 'index.html',     label: 'Home',     ico: 'home' },
+      { href: 'find-ride.html', label: 'Find',     ico: 'search' },
+      { href: 'post-ride.html', label: 'Post',     ico: 'plus' },
+      { href: 'my-rides.html',  label: 'My rides', ico: 'list' },
+      { href: 'messages.html',  label: 'Messages', ico: 'chat' },
+    ];
+    document.querySelector('.tabbar')?.remove();
+    const bar = document.createElement('nav');
+    bar.className = 'tabbar';
+    bar.setAttribute('aria-label', 'Main');
+    bar.innerHTML = TABS.map((t) => `
+      <a href="${t.href}"${t.href === here ? ' class="active" aria-current="page"' : ''}>
+        <span class="tab-ico" aria-hidden="true">${icon(t.ico, 21)}</span>
+        <span>${t.label}</span>
+        ${t.href === 'messages.html'
+          ? '<span class="tab-dot hidden" data-msg-count></span>' : ''}
+      </a>`).join('');
+    document.body.appendChild(bar);
+    document.body.classList.add('has-tabbar');
   }
 
   const footer = document.getElementById('footer');
@@ -512,6 +543,61 @@ export function errorState(err, retryId = 'retryBtn') {
       <p style="max-width:46ch;margin-inline:auto">${esc(readableError(err))}</p>
       <button class="btn btn-primary mt-3" id="${esc(retryId)}">Retry</button>
     </div>`;
+}
+
+/**
+ * The safety notice, shown before a rider asks for a seat and before a driver
+ * accepts one. Resolves to the version string when confirmed, or null if the
+ * person backs out — the caller must not proceed on null.
+ *
+ * The confirmation is recorded server-side against this version, so this is an
+ * audit trail rather than decoration.
+ */
+export function safetyNotice(role) {
+  const n = SAFETY_NOTICE[role];
+  return new Promise((resolve) => {
+    const { el, close } = modal({
+      title: n.title,
+      body: `
+        <p class="notice-lead">${esc(n.lead)}</p>
+        <div class="notice-list">
+          ${n.points.map(([h, p]) => `
+            <div class="notice-item">
+              <span class="notice-tick" aria-hidden="true">${icon('check', 12)}</span>
+              <div><h4>${esc(h)}</h4><p>${esc(p)}</p></div>
+            </div>`).join('')}
+        </div>
+        <div class="notice-standing">
+          ${SAFETY_NOTICE.standing.map((p) => `<p>${esc(p)}</p>`).join('')}
+          <p><a href="safety.html" target="_blank" rel="noopener">Read the full Safety Center</a></p>
+        </div>
+        <label class="check notice-confirm" id="ackWrap">
+          <input type="checkbox" id="ackBox">
+          <span>I have read this, I understand CarBuddy does not vet drivers or vehicles,
+            and I am choosing to arrange this journey myself.</span>
+        </label>`,
+      actions: [
+        { label: 'Not now', cls: 'btn-secondary', onClick: (_, c) => { c(); resolve(null); } },
+        { label: role === 'driver' ? 'Confirm and accept' : 'Confirm and ask',
+          cls: 'btn-primary',
+          onClick: (root, c) => {
+            if (!root.querySelector('#ackBox').checked) {
+              root.querySelector('#ackWrap').classList.add('armed');
+              toast('Please confirm you have read this first');
+              return;
+            }
+            c(); resolve(SAFETY_NOTICE_VERSION);
+          } },
+      ],
+    });
+    // backing out via the X or the backdrop counts as declining
+    const obs = new MutationObserver(() => {
+      if (!document.body.contains(el)) { obs.disconnect(); resolve(null); }
+    });
+    obs.observe(document.body, { childList: true });
+    el.querySelector('#ackBox').addEventListener('change', (e) =>
+      el.querySelector('#ackWrap').classList.toggle('armed', !e.target.checked ? false : false));
+  });
 }
 
 /** Consistent back link. Always points somewhere real. */

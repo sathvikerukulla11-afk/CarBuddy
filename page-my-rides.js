@@ -1,6 +1,7 @@
 import {
   mountChrome, requireAuth, $, $$, esc, rideCard, emptyState, avatarEl,
   toastOk, toastError, confirmDialog, seatBadge, withBusy, loadingState, errorState,
+  safetyNotice,
 } from './ui.js';
 import { myDrivingRides, myJoinedRides, completeRide, cancelRide } from './rides.js';
 import {
@@ -59,7 +60,7 @@ async function renderDriving() {
 
   if (!rides.length) {
     panel.innerHTML = emptyState('🚗', "You don't have any rides yet.",
-      'Post a trip you were already taking and let people ask for the empty seats.',
+      "Most cars on your route are running nearly empty. Post a trip you're already making and let people ask for the spare seats.",
       `<div class="row mt-3" style="justify-content:center">
          <a class="btn btn-primary" href="post-ride.html">Post a Ride</a>
          <a class="btn btn-secondary" href="find-ride.html">Find a Ride</a></div>`);
@@ -181,8 +182,11 @@ async function renderIncoming() {
   }).join('')}</div>`;
 
   $$('[data-accept]').forEach((b) => b.addEventListener('click', async (e) => {
-    await withBusy(e.currentTarget, 'Accepting…', async () => {
-      try { await respondToRequest(e.currentTarget.dataset.accept, true); toastOk('Accepted — seat count updated'); render(); }
+    const btn = e.currentTarget;
+    const ackVersion = await safetyNotice('driver');
+    if (!ackVersion) return;
+    await withBusy(btn, 'Accepting…', async () => {
+      try { await respondToRequest(e.currentTarget.dataset.accept, true, ackVersion); toastOk('Accepted — seat count updated'); render(); }
       catch (err) { toastError(err); render(); }
     });
   }));

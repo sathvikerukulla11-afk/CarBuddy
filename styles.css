@@ -1188,3 +1188,104 @@ table.admin-table tr:last-child td { border-bottom: 0; }
   .msg-row { max-width: 88%; }
   .chat-compose textarea { min-height: 48px; font-size: 16px; }
 }
+
+/* ==========================================================================
+   Phone: bottom tab bar, safe areas, sticky actions
+   ========================================================================== */
+
+/* Reachable navigation on phones. The hamburger keeps the secondary
+   destinations; these five are the ones people use constantly. */
+.tabbar {
+  position: fixed; inset: auto 0 0 0; z-index: 60;
+  display: none; grid-template-columns: repeat(5, 1fr);
+  background: rgba(255,255,255,.92);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+  backdrop-filter: saturate(180%) blur(16px);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.tabbar a {
+  display: grid; justify-items: center; gap: 3px;
+  padding: 9px 4px 7px; min-height: 56px;
+  font-size: .66rem; font-weight: 550; letter-spacing: .01em;
+  color: var(--muted); text-decoration: none; position: relative;
+  transition: color .15s var(--ease);
+}
+.tabbar a:hover { text-decoration: none; }
+.tabbar a.active { color: var(--navy-800); font-weight: 620; }
+.tabbar a.active .tab-ico { transform: translateY(-1px); }
+.tab-ico { display: grid; place-items: center; height: 22px; transition: transform .18s var(--ease-out); }
+.tab-ico svg { width: 21px; height: 21px; }
+.tab-dot {
+  position: absolute; top: 6px; left: 50%; margin-left: 5px;
+  min-width: 16px; height: 16px; padding: 0 4px; border-radius: var(--r-pill);
+  background: var(--danger); color: #fff; border: 2px solid var(--surface);
+  font-size: .6rem; font-weight: 700; display: grid; place-items: center;
+}
+
+@media (max-width: 899px) {
+  .tabbar { display: grid; }
+  /* stop the bar covering the end of the page */
+  body.has-tabbar { padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
+  body.has-tabbar .footer { margin-bottom: 0; }
+  /* the chat composer sits above the tab bar */
+  body.has-tabbar .chat { height: calc(100dvh - var(--nav-h) - 56px - env(safe-area-inset-bottom, 0px)); }
+  .toasts { bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 12px); }
+}
+
+/* A primary action that stays reachable with one thumb on long forms. */
+.sticky-actions {
+  position: sticky; bottom: 0; z-index: 20;
+  background: linear-gradient(to top, var(--bg) 62%, rgba(248,247,244,0));
+  padding: var(--s-5) 0 var(--s-4);
+  margin-top: var(--s-4);
+}
+@media (max-width: 899px) {
+  .sticky-actions { bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Impact panel */
+.impact {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--r-xl); padding: var(--s-6);
+}
+.impact-grid { display: grid; gap: var(--s-4); grid-template-columns: repeat(2, minmax(0,1fr)); }
+@media (min-width: 720px) { .impact-grid { grid-template-columns: repeat(4, minmax(0,1fr)); } }
+.impact-stat { display: grid; gap: 2px; }
+.impact-value { font-size: 1.6rem; font-weight: 640; color: var(--navy-900); letter-spacing: -.03em; line-height: 1.15; }
+.impact-label { font-size: .78rem; color: var(--muted); }
+.impact-note { font-size: .74rem; color: var(--muted-2); margin-top: var(--s-4); line-height: 1.5; }
+
+/* Community proof strip on the landing page */
+.proof {
+  display: grid; gap: var(--s-6); grid-template-columns: repeat(3, minmax(0,1fr));
+  padding: var(--s-6) 0; margin-top: var(--s-8);
+  border-top: 1px solid var(--line);
+}
+.proof-value { font-size: 1.5rem; font-weight: 640; color: var(--navy-900); letter-spacing: -.03em; }
+.proof-label { font-size: .78rem; color: var(--muted); }
+@media (max-width: 520px) { .proof { gap: var(--s-4); } .proof-value { font-size: 1.2rem; } }
+
+/* ---- safety notice --------------------------------------------------- */
+.notice-lead { font-size: .95rem; color: var(--ink-2); line-height: 1.6; margin: 0 0 var(--s-5); }
+.notice-list { display: grid; gap: var(--s-4); margin: 0 0 var(--s-5); }
+.notice-item { display: grid; grid-template-columns: 22px 1fr; gap: var(--s-3); align-items: start; }
+.notice-tick {
+  width: 20px; height: 20px; border-radius: 50%; margin-top: 1px;
+  background: var(--blue-50); color: var(--navy-700);
+  display: grid; place-items: center; flex: 0 0 auto;
+}
+.notice-tick svg { width: 12px; height: 12px; }
+.notice-item h4 { margin: 0 0 2px; font-size: .92rem; font-weight: 590; color: var(--navy-900); }
+.notice-item p { margin: 0; font-size: .865rem; color: var(--muted); line-height: 1.55; }
+.notice-standing {
+  background: var(--surface-3); border-radius: var(--r);
+  padding: var(--s-4) var(--s-5); margin-bottom: var(--s-5);
+}
+.notice-standing p { margin: 0 0 var(--s-2); font-size: .82rem; color: var(--ink-2); line-height: 1.55; }
+.notice-standing p:last-child { margin-bottom: 0; }
+.notice-confirm {
+  border: 1px solid var(--line-2); border-radius: var(--r);
+  padding: var(--s-4); background: var(--surface); margin: 0;
+}
+.notice-confirm.armed { border-color: var(--navy-600); background: var(--blue-50); }

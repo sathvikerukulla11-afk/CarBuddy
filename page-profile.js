@@ -160,7 +160,7 @@ async function renderMine() {
       // Geocoding the home area lets Find a Ride offer "near my area" without
       // asking for GPS permission. Failure here must not block the save.
       let pos = null;
-      if (area && area !== (p.home_area || '')) pos = await geocode(area);
+      if (area && area !== (p.home_area || '')) pos = await geocode(area);   // a home area is already a place name
 
       await updateMyProfile({
         full_name: $('#fullName').value.trim(),

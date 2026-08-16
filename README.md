@@ -125,6 +125,59 @@ single source of truth and nobody can write to it — including the account itse
 Every consequential action is recorded in `admin_actions` with the admin, the
 target, a human-readable label and a details payload — visible under Settings.
 
+### The safety notice
+
+Before a rider asks for a seat, and before a driver accepts one, each person sees
+a short notice and must tick a box. Both confirmations are written to
+`safety_acknowledgements` with the person, the ride, their role, a timestamp and a
+**version string**.
+
+The version matters: change the wording and you change `SAFETY_NOTICE_VERSION` in
+`constants.js`, so an old acknowledgement never appears to cover text the person
+never read.
+
+This is enforced in Postgres, not the page. `request_to_join()` raises without an
+acknowledgement, `respond_to_request(accept => true)` raises without one, and the
+previous signatures of both were dropped, so there is no older call still sitting
+in the API that skips it. Declining a rider needs no confirmation, and admins
+acting during moderation are exempt.
+
+The standing statement is deliberately factual — what CarBuddy does and does not
+do — rather than a blanket "we accept no liability". See §9.
+
+### On a phone
+
+The site installs. `manifest.json` plus the Apple web-app tags mean **Add to Home
+Screen** gives a standalone app with its own icon, no browser chrome, and shortcuts
+straight to Find a Ride, Post a Ride and Messages.
+
+Signed-in members get a **bottom tab bar** below 900px — Home, Find, Post, My rides,
+Messages, with the unread count on Messages. The header nav and hamburger stay for
+everything else, so nothing became unreachable. Signed-out visitors don't get the
+bar; they have nothing to switch between yet.
+
+Every page uses `viewport-fit=cover` with `env(safe-area-inset-*)` padding, so
+nothing hides behind a notch or a home indicator, and the chat uses `100dvh` so the
+composer isn't covered when the keyboard opens.
+
+### Why anyone would come back
+
+The dashboard shows **Your impact**, built only from completed rides:
+
+- rides shared, split between driving and riding
+- car journeys not made — one per rider you carried, or one for each ride you joined
+- miles travelled together, and CO₂ not emitted at 0.4 kg per car mile
+
+The numbers are deliberately conservative. Distance only counts rides that were
+geocoded, and the panel says how many of your rides that covers rather than
+implying it measured all of them. With no completed rides it says so and points at
+the next useful action instead of printing zeroes. The landing page shows community
+totals only once there are at least five completed rides — below that it shows the
+value propositions, because "0 rides shared" would put people off.
+
+There is deliberately no streak, badge or leaderboard. On a platform carrying
+under-18s, rewarding ride *count* would push exactly the wrong behaviour.
+
 ### Messaging
 
 Conversations are tied to a ride and you cannot start one with a stranger. The
@@ -235,7 +288,7 @@ Storage: one public `avatars` bucket, writable only inside `avatars/<your-user-i
 
 ## 3. SQL
 
-**All twenty migrations are already applied to the live project.** You only need to run
+**All twenty-three migrations are already applied to the live project.** You only need to run
 them if you rebuild the database elsewhere — in numeric order, pasted into the Supabase SQL
 editor. (The Supabase CLI expects them under `supabase/migrations/`; recreate that folder
 if you would rather use `supabase db push`.)
@@ -262,6 +315,9 @@ if you would rather use `supabase db push`.)
 | `0018_messaging_schema.sql` | `conversations`, `conversation_members`, `messages`; membership RLS; realtime publication |
 | `0019_messaging_rpcs.sql` | send / read / list / report, and the accept hook that creates the conversation |
 | `0020_reports_survive_target_deletion.sql` | A report no longer blocks deleting the ride or account it referenced |
+| `0021_impact_and_community_stats.sql` | `my_impact()` and `community_stats()`, derived from completed rides |
+| `0022_safety_acknowledgements.sql` | `safety_acknowledgements`; requesting a seat now requires a confirmed notice |
+| `0023_driver_ack_on_accept.sql` | Accepting a rider requires the driver's confirmation too |
 
 Then, **once**, after signing up with the account that should be the administrator:
 
@@ -416,6 +472,59 @@ await supabase.from('admin_actions').select('*');           // returns []
 await supabase.from('profiles').update({ is_admin: true }).eq('id', '<your id>');
 ```
 
+### The safety notice
+
+Before a rider asks for a seat, and before a driver accepts one, each person sees
+a short notice and must tick a box. Both confirmations are written to
+`safety_acknowledgements` with the person, the ride, their role, a timestamp and a
+**version string**.
+
+The version matters: change the wording and you change `SAFETY_NOTICE_VERSION` in
+`constants.js`, so an old acknowledgement never appears to cover text the person
+never read.
+
+This is enforced in Postgres, not the page. `request_to_join()` raises without an
+acknowledgement, `respond_to_request(accept => true)` raises without one, and the
+previous signatures of both were dropped, so there is no older call still sitting
+in the API that skips it. Declining a rider needs no confirmation, and admins
+acting during moderation are exempt.
+
+The standing statement is deliberately factual — what CarBuddy does and does not
+do — rather than a blanket "we accept no liability". See §9.
+
+### On a phone
+
+The site installs. `manifest.json` plus the Apple web-app tags mean **Add to Home
+Screen** gives a standalone app with its own icon, no browser chrome, and shortcuts
+straight to Find a Ride, Post a Ride and Messages.
+
+Signed-in members get a **bottom tab bar** below 900px — Home, Find, Post, My rides,
+Messages, with the unread count on Messages. The header nav and hamburger stay for
+everything else, so nothing became unreachable. Signed-out visitors don't get the
+bar; they have nothing to switch between yet.
+
+Every page uses `viewport-fit=cover` with `env(safe-area-inset-*)` padding, so
+nothing hides behind a notch or a home indicator, and the chat uses `100dvh` so the
+composer isn't covered when the keyboard opens.
+
+### Why anyone would come back
+
+The dashboard shows **Your impact**, built only from completed rides:
+
+- rides shared, split between driving and riding
+- car journeys not made — one per rider you carried, or one for each ride you joined
+- miles travelled together, and CO₂ not emitted at 0.4 kg per car mile
+
+The numbers are deliberately conservative. Distance only counts rides that were
+geocoded, and the panel says how many of your rides that covers rather than
+implying it measured all of them. With no completed rides it says so and points at
+the next useful action instead of printing zeroes. The landing page shows community
+totals only once there are at least five completed rides — below that it shows the
+value propositions, because "0 rides shared" would put people off.
+
+There is deliberately no streak, badge or leaderboard. On a platform carrying
+under-18s, rewarding ride *count* would push exactly the wrong behaviour.
+
 ### Messaging
 
 1. As a driver, post a ride. As a second account, request a seat.
@@ -481,7 +590,31 @@ section — no migration required.
 
 ---
 
-## 9. Before you launch publicly
+## 9. About the liability wording
+
+The notice says CarBuddy does not employ, vet, insure or supervise drivers, does
+not check licences or vehicles, is not a party to the arrangement, and handles no
+money. Every one of those is a true statement of fact about how the product works,
+which is what makes them worth saying.
+
+It deliberately does **not** say "we have no liability", for three reasons:
+
+1. Saying it does not make it so. Liability is decided by law and by what you
+   actually did, not by a sentence in a modal.
+2. This platform is built for under-18s, and a minor cannot validly waive claims
+   in most states — nor can a parent always waive them on the child's behalf.
+   A waiver that reads as ironclad but is not is worse than none, because it
+   discourages people from raising problems.
+3. In litigation, over-claiming reads badly. An accurate description of the service
+   holds up; "we are not responsible for anything" invites the argument that you
+   knew the risk and papered over it.
+
+What actually helps is the part that is built: a timestamped, versioned record that
+this specific person confirmed this specific text before this specific ride, which
+you can produce years later. Pair it with real Terms of Service written by a lawyer
+before any public launch.
+
+## 10. Before you launch publicly
 
 **Must do**
 

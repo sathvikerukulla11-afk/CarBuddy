@@ -4,7 +4,7 @@ import {
 import { createRide } from './rides.js';
 import { myActiveGroups } from './groups.js';
 import { todayISO } from './format.js';
-import { geocode } from './geocode.js';
+import { geocode, looksImplausible, IMPLAUSIBLE_TRIP_MILES } from './geocode.js';
 
 await mountChrome();
 if (!(await requireAuth())) throw new Error('redirecting');
@@ -129,17 +129,30 @@ form.addEventListener('submit', async (e) => {
   // mile radius. If the geocoder is down or the place is unrecognisable the
   // ride still posts — it just won't appear in radius-filtered results, and we
   // say so rather than failing silently.
+  // Bias the lookup to the member's own area: bare names like "Memorial High
+  // School" otherwise match a famous place hundreds of miles away, which would
+  // quietly break distance search.
+  const near = profile?.home_area || '';
   let originPos = null, destPos = null;
   try {
-    originPos = await geocode($('#origin').value);
-    destPos   = await geocode($('#destination').value);
-  } catch { /* handled below by the null check */ }
+    originPos = await geocode($('#origin').value, { near });
+    destPos   = await geocode($('#destination').value, { near });
+  } catch { /* handled below by the null checks */ }
 
   if (!originPos) {
-    msg.innerHTML = `<div class="alert alert-warn">We could not pin
-      "<strong>${esc($('#origin').value)}</strong>" on the map, so this ride will not show up
-      when people filter by distance. It will still appear in normal search.
-      Try adding a city and state, then post again — or press Post to continue anyway.</div>`;
+    msg.innerHTML = `<div class="alert alert-warn">We could not place
+      "<strong>${esc($('#origin').value)}</strong>" on the map, so this ride won't show up when
+      people filter by distance. It will still appear in normal search. Adding a town and state
+      usually fixes it — or press Post to continue anyway.</div>`;
+  } else if (looksImplausible(originPos, destPos)) {
+    // Almost always an ambiguous name matching the wrong town.
+    msg.innerHTML = `<div class="alert alert-warn">
+      <strong>Check these places.</strong> We matched them to
+      "<strong>${esc(originPos.label)}</strong>" and "<strong>${esc(destPos.label)}</strong>",
+      which are over ${IMPLAUSIBLE_TRIP_MILES} miles apart. If that's not what you meant, add a
+      town and state (for example "Memorial High School, Frisco TX") and post again.
+      Posting anyway will leave this ride out of distance search.</div>`;
+    originPos = null; destPos = null;    // better no coordinates than wrong ones
   }
 
   btn.textContent = 'Posting ride…';

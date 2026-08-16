@@ -1,0 +1,21 @@
+{
+  "name": "CarBuddy",
+  "short_name": "CarBuddy",
+  "description": "Share the ride with people you can trust.",
+  "start_url": "index.html",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F8F7F4",
+  "theme_color": "#0B2136",
+  "categories": ["travel", "social"],
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Find a Ride", "url": "find-ride.html" },
+    { "name": "Post a Ride", "url": "post-ride.html" },
+    { "name": "Messages",    "url": "messages.html" }
+  ]
+}
